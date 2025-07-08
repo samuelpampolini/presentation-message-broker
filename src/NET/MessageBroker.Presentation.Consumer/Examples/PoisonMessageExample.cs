@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Channels;
 
 namespace MessageBroker.Presentation.Consumer.Examples;
+
 [Example("Poison Message", key: ConsoleKey.D2)]
 public class PoisonMessageExample : BaseConsumerExample
 {
@@ -72,7 +73,7 @@ public class PoisonMessageExample : BaseConsumerExample
 
     private Task CallbackExceptionAsync(object sender, CallbackExceptionEventArgs args)
     {
-        _logger.LogError(args.Exception, "An error occurred in the consumer.");
+        _logger.LogInformation("An error occurred in the consumer. [{Message}]", args.Exception.Message);
         return Task.CompletedTask;
     }
 
@@ -82,14 +83,14 @@ public class PoisonMessageExample : BaseConsumerExample
         {
             var body = eventArgs.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
-            _logger.LogInformation($"Message: {message}, Delivery Tag: {eventArgs.DeliveryTag}, Exchange: {eventArgs.Exchange}, and Routing Key: {eventArgs.RoutingKey}");
+            _logger.LogInformation("Message: {Message}, Delivery Tag: {DeliveryTag}, Exchange: {Exchange}, and Routing Key: {RoutingKey}", message, eventArgs.DeliveryTag, eventArgs.Exchange, eventArgs.RoutingKey);
 
             // Simulate processing time
             await Task.Delay(500);
 
             if (message.Contains("fail"))
             {
-                throw new Exception("Simulated processing unexpected failure for poison message.");
+                throw new InvalidOperationException("Simulated processing unexpected failure for poison message.");
             }
 
             if (_channel is null)
