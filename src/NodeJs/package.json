@@ -1,0 +1,23 @@
+{
+  "name": "nodejs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "producer-simple": "node --experimental-strip-types ./producer.ts presentation-simple-consumer",
+    "producer-poison": "node --experimental-strip-types ./producer.ts presentation-poison-message-1",
+    "consumer-simple": "node --experimental-strip-types ./consumer.ts presentation-simple-consumer",
+    "consumer-poison": "node --experimental-strip-types ./consumer.ts presentation-poison-message-1"
+  },
+  "type": "module",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "amqplib": "^0.10.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.3"
+  }
+}
