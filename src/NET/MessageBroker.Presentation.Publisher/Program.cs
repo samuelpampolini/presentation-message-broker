@@ -21,6 +21,7 @@ services.AddTransient<DirectExample>();
 services.AddTransient<TopicExample>();
 services.AddTransient<HeaderExample>();
 services.AddTransient<ExchangeToExchangeExample>();
+services.AddTransient<AlternateExchangeExample>();
 
 // Add Logs
 services.AddLogging(builder =>

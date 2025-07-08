@@ -6,12 +6,14 @@ using System.Text.Json;
 using System.Threading.Channels;
 
 namespace MessageBroker.Presentation.Consumer.Examples;
+
 public abstract class BaseConsumerExample : IMessageExample
 {
     protected readonly IConnectionFactory _connectionFactory;
     protected readonly ILogger _logger;
     protected IConnection? _connection;
     protected IChannel? _channel;
+    private bool _disposed;
 
     protected BaseConsumerExample(IConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
     {
@@ -21,18 +23,32 @@ public abstract class BaseConsumerExample : IMessageExample
 
     public void Dispose()
     {
-        _logger.LogInformation("Disposing resources...");
-        if (_channel is not null)
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+
+        if (disposing)
         {
-            _channel.Dispose();
-            _channel = null;
+            _logger.LogInformation("Disposing resources...");
+            if (_channel is not null)
+            {
+                _channel.Dispose();
+                _channel = null;
+            }
+
+            if (_connection is not null)
+            {
+                _connection.Dispose();
+                _connection = null;
+            }
         }
 
-        if (_connection is not null)
-        {
-            _connection.Dispose();
-            _connection = null;
-        }
+        _disposed = true;
     }
 
     public async Task RunExample(CancellationToken ct)
@@ -45,8 +61,6 @@ public abstract class BaseConsumerExample : IMessageExample
 
         _logger.LogInformation("Press any key to stop this example:");
         Console.ReadKey();
-
-        _logger.LogInformation("Example completed successfully");
     }
 
     private async Task InitiateConnections(CancellationToken ct)

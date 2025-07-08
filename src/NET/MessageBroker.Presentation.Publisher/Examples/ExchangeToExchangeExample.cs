@@ -43,7 +43,7 @@ internal class ExchangeToExchangeExample : BaseExchangeExample
         await _channel.QueueBindAsync(queue3, ExchangeName, routingKey: "*.order", cancellationToken: ct);
 
         // bind to the fanout exchange
-        await _channel.QueueBindAsync(queue4, ExchangeNameFanOut, routingKey: "*.order", cancellationToken: ct);
+        await _channel.QueueBindAsync(queue4, ExchangeNameFanOut, routingKey: "", cancellationToken: ct);
         await _channel.ExchangeBindAsync(ExchangeName, ExchangeNameFanOut, routingKey: "", cancellationToken: ct);
     }
 

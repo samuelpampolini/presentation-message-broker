@@ -109,7 +109,7 @@ internal abstract class BaseExchangeExample : IMessageExample
 
             QueuesCreated.ForEach(async queue =>
             {
-                _logger.LogInformation($"Deleting queue: {queue}");
+                _logger.LogInformation("Deleting queue: {Queue}", queue);
                 await _channel.QueueDeleteAsync(queue, cancellationToken: ct);
             });
 
@@ -118,6 +118,11 @@ internal abstract class BaseExchangeExample : IMessageExample
     }
 
     protected virtual Task ExtraExampleCleanUp(CancellationToken ct) => Task.CompletedTask;
+
+    protected Task SendMessageToDefaultExchange<T>(T message, string routingKey = "", CancellationToken cancellationToken = default)
+    {
+        return SendMessage(message, routingKey, ExchangeName, cancellationToken);
+    }
 
     protected async Task SendMessage<T>(T message, string routingKey = "", string? exchange = null, CancellationToken cancellationToken = default)
     {
@@ -143,12 +148,7 @@ internal abstract class BaseExchangeExample : IMessageExample
         string exchangeToPublish = exchange ?? ExchangeName;
 
         _logger.LogInformation("Message: [{Message}] with routing key [{RoutingKey}] to [{Exchange}]", textMessage, routingKey, exchangeToPublish);
-        await _channel.BasicPublishAsync(exchangeToPublish, routingKey, mandatory: false, body: body, cancellationToken: cancellationToken);
-    }
-
-    protected Task SendMessageToDefaultExchange<T>(T message, string routingKey = "", CancellationToken cancellationToken = default)
-    {
-        return SendMessage(message, routingKey, ExchangeName, cancellationToken);
+        await _channel.BasicPublishAsync(exchangeToPublish, routingKey, mandatory: true, body: body, cancellationToken: cancellationToken);
     }
 
     protected async Task SendMessage<T>(T message, IDictionary<string, object?> headerValues, CancellationToken cancellationToken = default)
@@ -176,7 +176,7 @@ internal abstract class BaseExchangeExample : IMessageExample
         _logger.LogInformation("Message: {Message}", textMessage);
         await _channel.BasicPublishAsync(ExchangeName,
             routingKey: string.Empty,
-            mandatory: false,
+            mandatory: true,
             basicProperties: properties,
             body,
             cancellationToken);
