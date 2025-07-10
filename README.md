@@ -70,36 +70,18 @@ We are going to cover simple consumers and poison message consumers.
 dotnet run -project MessageBroker.Presentation.Consumer
 ```
 
-2. Start the Node.js Simple Consumer
-
-```bash
-npm run consumer-simple
-```
-
-3. Run the Node.JS producer script to check the outputs
-
-```bash
-npm run producer-simple
-```
-
 #### Poison Message Consumers
 To properly see how a Dead Letter Exchange (DLX) can be applied run the following commands:
 
-1. C# Poison Message Consumer - execute the command below to run the application and enter 2 to start the poison message consumer
+- C# Poison Message Consumer - execute the command below to run the application and enter 2 to start the poison message consumer
 ```bash
 dotnet run -project MessageBroker.Presentation.Consumer
 ```
 
-2. Start the Node.js Poison Message Consumer
+- Run the command below to execute the Node.js Poison Consumer
 
 ```bash
-npm run consumer-poison
-```
-
-3. Run the Node.JS producer script to check the outputs
-
-```bash
-npm run producer-poison
+npm run start
 ```
 
 ## License

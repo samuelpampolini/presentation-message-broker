@@ -3,11 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "producer-simple": "node --experimental-strip-types ./producer.ts presentation-simple-consumer",
-    "producer-poison": "node --experimental-strip-types ./producer.ts presentation-poison-message-1",
-    "consumer-simple": "node --experimental-strip-types ./consumer.ts presentation-simple-consumer",
-    "consumer-poison": "node --experimental-strip-types ./consumer.ts presentation-poison-message-1"
+    "start": "node ./poison-consumer"
   },
   "type": "module",
   "keywords": [],
