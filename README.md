@@ -1,10 +1,17 @@
 # Message Broker Presentation - RabbitMQ Examples
+
 Example of RabbitMQ and Queue Types using C# and NodeJS, exploring the different types of queues and how to consume messages from them.
 
 ## Table Of Contents
 
 - [RabbitMQ](#rabbitmq)
 - [Queue Types](#queue-types)
+- [Project Structure](#project-structure)
+- [Naming Conventions for Queues and Exchanges](#naming-conventions-for-queues-and-exchanges)
+- [Quickstart](#quickstart)
+- [Consumers](#consumers)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
 
 ## RabbitMQ
 
@@ -13,76 +20,118 @@ RabbitMQ is an open-source message broker software that facilitates communicatio
 RabbitMQ is designed to be reliable, scalable, and flexible, making it suitable for a wide range of applications. It can be used for various purposes, such as decoupling microservices, implementing event-driven architectures, and handling background tasks.
 [Official Documentation](https://www.rabbitmq.com/docs)
 
-## Setup of the Examples
+## Queue Types
 
-### Prerequisites
+Supported RabbitMQ queue types:
 
-- Docker
-- .NET 8
-- Node.js 22
+- **Fanout**: Broadcasts messages to all bound queues.
+- **Direct**: Routes messages by routing key.
+- **Topic**: Pattern-based routing.
+- **Header**: Routing based on message headers.
+- **Exchange to Exchange**: Demonstrates exchange chaining.
+- **Alternate Exchange**: Handles messages that cannot be routed.
 
-### RabbitMQ
+## Project Structure
 
-1. Start the RabbitMQ container using Docker Compose:
+- `src/NET/MessageBroker.Presentation.Publisher`: .NET publisher examples
+- `src/NET/MessageBroker.Presentation.Consumer`: .NET consumer examples
+- `src/NET/MessageBroker.Example.CrossCut`: Shared interfaces, attributes, and example selection logic
+- `src/NodeJs/poison-consumer.js`: Node.js poison message consumer
+- `images/net-console-options.png`: Example selection menu screenshot
 
-```bash
-docker-compose up -d
-```
+## Naming Conventions for Queues and Exchanges
 
-2. Access the RabbitMQ management interface by navigating to `http://localhost:15672` in your web browser.
-The default username and password are both `guest`.
+Queue and exchange names in this project are explicit and descriptive to make it easy to identify their purpose and origin. The conventions are:
 
-3. Run the .NET example and choose one of the options presented at the console
+- **Prefix**: Names start with `presentation-` to indicate they are part of this demo project.
+- **Language/Component**: The next part (e.g., `node`, `net`) indicates the technology or consumer type.
+- **Purpose/Pattern**: The name includes the pattern or role, such as `poison-message`, `dld` (dead letter), or the queue type.
+- **Numbering**: If multiple related queues are used, a numeric suffix (e.g., `-1`) is added for clarity.
 
-## Run examples
+**Examples:**
+- `presentation-node-poison-message-1`: Node.js poison message queue example.
+- `presentation-node-poison-message-dld`: Dead letter queue for Node.js poison message example.
+- `presentation-node-poison-exchange-dld`: Dead letter exchange for Node.js poison message example.
 
-### Types of Queues
-This section will cover the different types of queues available in RabbitMQ, including:
+This convention helps quickly identify the queue/exchange's role, technology, and pattern when debugging or extending the project.
 
-- Fanout
-- Direct
-- Topic
-- Header
-- Exchange to Exchange
+## Quickstart
 
-For this examples we are going to use .NET.
-To execute the application navigate to "src\NET\MessageBroker.Presentation.Publisher" and run the command bellow:
+1. **Start RabbitMQ:**
 
-```bash
-dotnet run -project MessageBroker.Presentation.csproj
-```
+   ```bash
+   docker-compose up -d
+   ```
 
-You're going to be presented with a menu to choose the type of queue you want to test.
-![Menu](/images/net-console-options.png)
+2. **Access RabbitMQ Management:**  
+   [http://localhost:15672](http://localhost:15672) (user/pass: guest/guest)
+3. **Run Publisher (.NET):**
 
-### Consume Messages
-This section will cover how to consume messages from RabbitMQ using different programming languages, including:
+   ```bash
+   cd src/NET/MessageBroker.Presentation.Publisher
+   dotnet run -project MessageBroker.Presentation.csproj
+   ```
 
-- C#
-- Node.js
+   Choose a queue type from the menu:
+   - `1` Fanout
+   - `2` Direct
+   - `3` Topic
+   - `4` Header
+   - `5` Exchange to Exchange
+   - `6` Alternate Exchange
+4. **Run Consumer (.NET):**
 
-We are going to cover simple consumers and poison message consumers.
+   ```bash
+   cd src/NET/MessageBroker.Presentation.Consumer
+   dotnet run -project MessageBroker.Presentation.Consumer
+   ```
 
-#### Simple Consumers
-1. C# Simple Consumer - execute the command below to run the application and enter 1 to start the simple consumer
+   - Enter `1` for Simple Consumer, `2` for Poison Message Consumer.
+5. **Run Poison Consumer (Node.js):**
 
-```bash
-dotnet run -project MessageBroker.Presentation.Consumer
-```
+   ```bash
+   cd src/NodeJs
+   npm run start
+   ```
 
-#### Poison Message Consumers
-To properly see how a Dead Letter Exchange (DLX) can be applied run the following commands:
+## Consumers
 
-- C# Poison Message Consumer - execute the command below to run the application and enter 2 to start the poison message consumer
-```bash
-dotnet run -project MessageBroker.Presentation.Consumer
-```
+### Simple Consumer (.NET)
 
-- Run the command below to execute the Node.js Poison Consumer
+- Run:
 
-```bash
-npm run start
-```
+  ```bash
+  dotnet run -project MessageBroker.Presentation.Consumer
+  ```
+
+  Enter `1` at the menu to start the simple consumer.
+
+### Poison Message Consumer (.NET)
+
+- Run:
+
+  ```bash
+  dotnet run -project MessageBroker.Presentation.Consumer
+  ```
+
+  Enter `2` at the menu to start the poison message consumer (demonstrates Dead Letter Exchange).
+
+### Poison Message Consumer (Node.js)
+
+- Run:
+
+  ```bash
+  npm run start
+  ```
+
+## Troubleshooting
+
+- **RabbitMQ not running:**
+  Ensure Docker is running and use `docker-compose up -d`.
+- **Connection issues:**
+  Check RabbitMQ management at [http://localhost:15672](http://localhost:15672).
+- **Menu not showing:**
+  Make sure you are running the correct project and in the right directory.
 
 ## License
 
