@@ -47,19 +47,26 @@ internal class ExchangeToExchangeExample : BaseExchangeExample
         await _channel.ExchangeBindAsync(ExchangeName, ExchangeNameFanOut, routingKey: "", cancellationToken: ct);
     }
 
-    public override async Task SendTestMessages(CancellationToken cancellationToken)
+    public override async Task SendTestMessages(CancellationToken ct)
     {
         // Send messages to the exchange
         var date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        await SendMessage($"New order book - {date}", "new.order.book", ExchangeName, cancellationToken);
-        await SendMessage($"New order created - {date}", "new.order", ExchangeNameFanOut, cancellationToken);
+        await SendMessage($"New order book - {date}", "new.order.book", ExchangeName, ct);
+        await SendMessage($"New order created - {date}", "new.order", ExchangeNameFanOut, ct);
     }
 
-    protected override async Task ExtraExampleCleanUp(CancellationToken ct)
+    protected override async Task<bool> CleanUpTestEnvironment(CancellationToken ct)
     {
-        if (_channel is null)
-            throw new InvalidOperationException("Channel not created");
+        bool cleanUp = await base.CleanUpTestEnvironment(ct);
 
-        await _channel.ExchangeDeleteAsync(ExchangeNameFanOut, cancellationToken: ct);
+        if (cleanUp)
+        {
+            if (_channel is null)
+                throw new InvalidOperationException("Channel not created");
+
+            await _channel.ExchangeDeleteAsync(ExchangeNameFanOut, cancellationToken: ct);
+        }
+
+        return cleanUp;
     }
 }

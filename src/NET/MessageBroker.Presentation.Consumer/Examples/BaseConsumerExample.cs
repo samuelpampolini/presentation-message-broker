@@ -1,9 +1,6 @@
 ﻿using MessageBroker.Example.CrossCut;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Channels;
 
 namespace MessageBroker.Presentation.Consumer.Examples;
 

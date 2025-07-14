@@ -94,7 +94,7 @@ internal abstract class BaseExchangeExample : IMessageExample
         await _channel.ExchangeDeclareAsync(ExchangeName, TypeOfExchange, durable: true, cancellationToken: ct);
     }
 
-    private async Task CleanUpTestEnvironment(CancellationToken ct)
+    protected virtual async Task<bool> CleanUpTestEnvironment(CancellationToken ct)
     {
         // Leave the environment to check on RabbitMQ interface
         _logger.LogInformation("Do you want to clean up the test Environment? (Y/N)");
@@ -112,12 +112,10 @@ internal abstract class BaseExchangeExample : IMessageExample
                 _logger.LogInformation("Deleting queue: {Queue}", queue);
                 await _channel.QueueDeleteAsync(queue, cancellationToken: ct);
             });
-
-            await ExtraExampleCleanUp(ct);
         }
-    }
 
-    protected virtual Task ExtraExampleCleanUp(CancellationToken ct) => Task.CompletedTask;
+        return cleanUpEnvironment;
+    }
 
     protected Task SendMessageToDefaultExchange<T>(T message, string routingKey = "", CancellationToken cancellationToken = default)
     {

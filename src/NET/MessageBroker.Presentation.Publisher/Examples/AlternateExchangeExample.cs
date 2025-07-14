@@ -54,11 +54,20 @@ internal class AlternateExchangeExample : BaseExchangeExample
         await SendMessage($"message not routed 2 - {date}", "aaa", ExchangeName, ct);
     }
 
-    protected override async Task ExtraExampleCleanUp(CancellationToken ct)
+    protected override async Task<bool> CleanUpTestEnvironment(CancellationToken ct)
     {
-        if (_channel is null)
-            throw new InvalidOperationException("Channel not created");
+        bool cleanUp = await base.CleanUpTestEnvironment(ct);
 
-        await _channel.ExchangeDeleteAsync(ExchangeNameFanOut, cancellationToken: ct);
+        if (cleanUp)
+        {
+            if (_channel is null)
+            {
+                throw new InvalidOperationException("Channel not created");
+            }
+
+            await _channel.ExchangeDeleteAsync(ExchangeNameFanOut, cancellationToken: ct);
+        }
+
+        return cleanUp;
     }
 }

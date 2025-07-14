@@ -20,7 +20,7 @@ internal class DirectExample : BaseExchangeExample
 
     public DirectExample(IConnectionFactory connectionFactory, ILoggerFactory loggerFactory) : base(connectionFactory, loggerFactory) { }
 
-    protected override async Task CreateTestEnvironment(CancellationToken ct = default)
+    protected override async Task CreateTestEnvironment(CancellationToken ct)
     {
         await base.CreateTestEnvironment(ct);
 
