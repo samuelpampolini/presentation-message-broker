@@ -42,7 +42,7 @@ internal class DirectExample : BaseExchangeExample
         // Send messages to the exchange
         var date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         await SendMessageToDefaultExchange($"Test of an updated order - {date}", routingKeyOrderUpdate, ct);
-        await SendMessageToDefaultExchange($"New order created - {date}", routingKeyNewOrder, ct);
-        await SendMessageToDefaultExchange($"New order created - {date}", routingKeyNewOrder, ct);
+        await SendMessageToDefaultExchange($"New order created 1 - {date}", routingKeyNewOrder, ct);
+        await SendMessageToDefaultExchange($"New order created 2 - {date}", routingKeyNewOrder, ct);
     }
 }

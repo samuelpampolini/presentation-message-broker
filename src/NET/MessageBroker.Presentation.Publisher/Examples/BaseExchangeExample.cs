@@ -149,36 +149,5 @@ internal abstract class BaseExchangeExample : IMessageExample
         await _channel.BasicPublishAsync(exchangeToPublish, routingKey, mandatory: true, body: body, cancellationToken: cancellationToken);
     }
 
-    protected async Task SendMessage<T>(T message, IDictionary<string, object?> headerValues, CancellationToken cancellationToken = default)
-    {
-        _logger.LogInformation($"Sending message");
-
-        if (_channel is null)
-            throw new InvalidOperationException($"Channel not created, please execute {nameof(InitiateConnections)}");
-
-        string textMessage;
-
-        if (message is string stringMessage)
-        {
-            textMessage = stringMessage;
-        }
-        else
-        {
-            textMessage = JsonSerializer.Serialize(message);
-        }
-
-        var body = Encoding.UTF8.GetBytes(textMessage);
-        var properties = new BasicProperties();
-        properties.Headers = headerValues;
-
-        _logger.LogInformation("Message: {Message}", textMessage);
-        await _channel.BasicPublishAsync(ExchangeName,
-            routingKey: string.Empty,
-            mandatory: true,
-            basicProperties: properties,
-            body,
-            cancellationToken);
-    }
-
     public abstract Task SendTestMessages(CancellationToken ct);
 }

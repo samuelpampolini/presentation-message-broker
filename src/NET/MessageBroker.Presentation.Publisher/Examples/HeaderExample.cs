@@ -1,5 +1,7 @@
 ﻿using MessageBroker.Example.CrossCut;
 using Microsoft.Extensions.Logging;
+using System.Text;
+using System.Text.Json;
 using RabbitMQ.Client;
 
 namespace MessageBroker.Presentation.Publisher.Examples;
@@ -60,5 +62,36 @@ internal class HeaderExample : BaseExchangeExample
         await SendMessage($"Just format - {date}", new Dictionary<string, object?> {
             {"format", "jpeg"}
         }, ct);
+    }
+
+    protected async Task SendMessage<T>(T message, IDictionary<string, object?> headerValues, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation($"Sending message");
+
+        if (_channel is null)
+            throw new InvalidOperationException($"Channel not created, please execute InitiateConnections");
+
+        string textMessage;
+
+        if (message is string stringMessage)
+        {
+            textMessage = stringMessage;
+        }
+        else
+        {
+            textMessage = JsonSerializer.Serialize(message);
+        }
+
+        var body = Encoding.UTF8.GetBytes(textMessage);
+        var properties = new BasicProperties();
+        properties.Headers = headerValues;
+
+        _logger.LogInformation("Message: {Message}", textMessage);
+        await _channel.BasicPublishAsync(ExchangeName,
+            routingKey: string.Empty,
+            mandatory: true,
+            basicProperties: properties,
+            body,
+            cancellationToken);
     }
 }
