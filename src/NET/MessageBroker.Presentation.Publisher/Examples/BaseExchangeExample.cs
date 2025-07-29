@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Channels;
 
 namespace MessageBroker.Presentation.Publisher.Examples;
 
@@ -56,10 +55,7 @@ internal abstract class BaseExchangeExample : IMessageExample
 
     public async Task RunExample(CancellationToken ct)
     {
-        _logger.LogInformation("Starting the Example");
-
         await InitiateConnections(ct);
-
         await CreateTestEnvironment(ct);
 
         _logger.LogInformation("Environment is ready, press any Key to send the messages");
@@ -67,9 +63,6 @@ internal abstract class BaseExchangeExample : IMessageExample
         Console.WriteLine();
 
         await SendTestMessages(ct);
-
-        _logger.LogInformation("Messages sent to the exchange, check the queues before clean up");
-
         await CleanUpTestEnvironment(ct);
 
         _logger.LogInformation("Example completed successfully");
@@ -77,7 +70,7 @@ internal abstract class BaseExchangeExample : IMessageExample
 
     private async Task InitiateConnections(CancellationToken ct)
     {
-        _logger.LogInformation("Preparing the enviornment");
+        _logger.LogInformation("Preparing the environment");
 
         _connection = await _connectionFactory.CreateConnectionAsync(ct);
         _channel = await _connection.CreateChannelAsync(cancellationToken: ct);

@@ -37,7 +37,7 @@ services.AddLogging(builder =>
 });
 
 // Get values from the config given their key and their target type.
-RabbitMQSettings settings = config.GetRequiredSection("MessageBoker:RabbitMQ").Get<RabbitMQSettings>()!;
+RabbitMQSettings settings = config.GetRequiredSection("MessageBroker:RabbitMQ").Get<RabbitMQSettings>()!;
 services.AddSingleton<IConnectionFactory>(serviceProvider =>
 {
     var connectionFactory = new ConnectionFactory

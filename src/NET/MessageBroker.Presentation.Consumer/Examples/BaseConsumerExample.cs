@@ -53,7 +53,6 @@ public abstract class BaseConsumerExample : IMessageExample
         _logger.LogInformation("Starting the Example");
 
         await InitiateConnections(ct);
-
         await SetupConsumingQueues(ct);
 
         _logger.LogInformation("Press any key to stop this example:");

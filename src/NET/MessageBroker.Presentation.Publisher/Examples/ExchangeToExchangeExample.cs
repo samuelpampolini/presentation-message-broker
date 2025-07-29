@@ -19,7 +19,7 @@ internal class ExchangeToExchangeExample : BaseExchangeExample
 
     public ExchangeToExchangeExample(IConnectionFactory connectionFactory, ILoggerFactory loggerFactory) : base(connectionFactory, loggerFactory) { }
 
-    protected override async Task CreateTestEnvironment(CancellationToken ct = default)
+    protected override async Task CreateTestEnvironment(CancellationToken ct)
     {
         // create the basic exchange.
         await base.CreateTestEnvironment(ct);
@@ -42,7 +42,7 @@ internal class ExchangeToExchangeExample : BaseExchangeExample
         await _channel.QueueBindAsync(queue2, ExchangeName, routingKey: "new.order.book", cancellationToken: ct);
         await _channel.QueueBindAsync(queue3, ExchangeName, routingKey: "*.order", cancellationToken: ct);
 
-        // bind to the fanout exchange
+        // bind to the fan out exchange
         await _channel.QueueBindAsync(queue4, ExchangeNameFanOut, routingKey: "", cancellationToken: ct);
         await _channel.ExchangeBindAsync(ExchangeName, ExchangeNameFanOut, routingKey: "", cancellationToken: ct);
     }

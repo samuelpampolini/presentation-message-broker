@@ -18,7 +18,7 @@ internal class AlternateExchangeExample : BaseExchangeExample
 
     public AlternateExchangeExample(IConnectionFactory connectionFactory, ILoggerFactory loggerFactory) : base(connectionFactory, loggerFactory) { }
 
-    protected override async Task CreateTestEnvironment(CancellationToken ct = default)
+    protected override async Task CreateTestEnvironment(CancellationToken ct)
     {
         if (_channel is null)
             throw new InvalidOperationException("Channel not created");
@@ -41,7 +41,7 @@ internal class AlternateExchangeExample : BaseExchangeExample
         await _channel.QueueBindAsync(queue2, ExchangeName, routingKey: "dfg", cancellationToken: ct);
 
 
-        // bind to the fanout exchange
+        // bind to the fan out exchange
         await _channel.QueueBindAsync(queue3, ExchangeNameFanOut, routingKey: "", cancellationToken: ct);
     }
 
@@ -49,7 +49,7 @@ internal class AlternateExchangeExample : BaseExchangeExample
     {
         // Send messages to the exchange
         var date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        await SendMessage($"rounted message - {date}", "abc", ExchangeName, ct);
+        await SendMessage($"Routed message - {date}", "abc", ExchangeName, ct);
         await SendMessage($"message not routed 1 - {date}", "xyz", ExchangeName, ct);
         await SendMessage($"message not routed 2 - {date}", "aaa", ExchangeName, ct);
     }

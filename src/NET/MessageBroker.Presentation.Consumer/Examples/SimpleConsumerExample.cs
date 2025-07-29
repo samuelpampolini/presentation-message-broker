@@ -3,9 +3,9 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
-using System.Threading.Channels;
 
 namespace MessageBroker.Presentation.Consumer.Examples;
+
 [Example("Simple Consumer", key: ConsoleKey.D1)]
 public class SimpleConsumerExample : BaseConsumerExample
 {
@@ -13,7 +13,7 @@ public class SimpleConsumerExample : BaseConsumerExample
 
     public override async Task SetupConsumingQueues(CancellationToken ct = default)
     {
-        if(_channel is null)
+        if (_channel is null)
             throw new InvalidOperationException("Channel is not initialized.");
 
         var queueName = "presentation-simple-consumer";
@@ -34,8 +34,8 @@ public class SimpleConsumerExample : BaseConsumerExample
     {
         var body = eventArgs.Body.ToArray();
         var message = Encoding.UTF8.GetString(body);
-        _logger.LogInformation($"Message: {message}, Delivery Tag: {eventArgs.DeliveryTag}, Exchange: {eventArgs.Exchange}, and Routing Key: {eventArgs.RoutingKey}");
-        
+        _logger.LogInformation("Message: {Message}, Delivery Tag: {DeliveryTag}, Exchange: {Exchange}, and Routing Key: {RoutingKey}", message, eventArgs.DeliveryTag, eventArgs.Exchange, eventArgs.RoutingKey);
+
         // Simulate processing time
         await Task.Delay(500);
 

@@ -3,8 +3,6 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
-using System.Text.Json;
-using System.Threading.Channels;
 
 namespace MessageBroker.Presentation.Consumer.Examples;
 
@@ -25,6 +23,7 @@ public class PoisonMessageExample : BaseConsumerExample
         var dldQueue2 = "presentation-poison-message-dld-2";
         var dldExchange = "presentation-poison-message-dld";
 
+        // Declare the dead-letter exchange and queues
         await _channel.ExchangeDeclareAsync(dldExchange, ExchangeType.Direct, durable: true, autoDelete: false, arguments: null, cancellationToken: ct);
 
         await _channel.QueueDeclareAsync(dldQueue1, durable: true, exclusive: false, autoDelete: false, arguments: null, cancellationToken: ct);
@@ -33,6 +32,7 @@ public class PoisonMessageExample : BaseConsumerExample
         await _channel.QueueDeclareAsync(dldQueue2, durable: true, exclusive: false, autoDelete: false, arguments: null, cancellationToken: ct);
         await _channel.QueueBindAsync(dldQueue2, dldExchange, routingKey: "poison-message-2", cancellationToken: ct);
 
+        // Header configuration of the normal queues.
         var queue1Arguments = new Dictionary<string, object?> {
             {"x-queue-type", "quorum"},
             {"x-dead-letter-exchange", dldExchange},
