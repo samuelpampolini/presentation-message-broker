@@ -23,6 +23,13 @@ public class PoisonMessageExample : BaseConsumerExample
         var dldQueue2 = "presentation-poison-message-dld-2";
         var dldExchange = "presentation-poison-message-dld";
 
+        // Delete existing queues and exchanges if they exist
+        await _channel.QueueDeleteAsync(queueName1, cancellationToken: ct);
+        await _channel.QueueDeleteAsync(queueName2, cancellationToken: ct);
+        await _channel.QueueDeleteAsync(dldQueue1, cancellationToken: ct);
+        await _channel.QueueDeleteAsync(dldQueue2, cancellationToken: ct);
+        await _channel.ExchangeDeleteAsync(dldExchange, cancellationToken: ct);
+
         // Declare the dead-letter exchange and queues
         await _channel.ExchangeDeclareAsync(dldExchange, ExchangeType.Direct, durable: true, autoDelete: false, arguments: null, cancellationToken: ct);
 
