@@ -1,6 +1,6 @@
 services:
   rabbitmq:
-    image: rabbitmq:latest
+    image: rabbitmq:4.1.2-management
     container_name: rabbitmq
     restart: always
     hostname: "presentation-rabbit"
@@ -14,7 +14,7 @@ services:
       - rabbitmq-lib:/var/lib/rabbitmq/
 configs:
   rabbitmq-plugins:
-    content: "[rabbitmq_management, rabbitmq_prometheus]."
+    content: "[rabbitmq_management]."
 
 volumes:
   rabbitmq-lib:
