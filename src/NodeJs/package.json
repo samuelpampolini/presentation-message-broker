@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node ./poison-consumer"
+    "start": "node ./run-test"
   },
   "type": "module",
   "keywords": [],
