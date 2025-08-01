@@ -1,11 +1,15 @@
-﻿using MessageBroker.Example.CrossCut;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using MessageBroker.Example.CrossCut;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
-namespace MessageBroker.Presentation.Publisher.Examples;
+namespace MessageBroker.Examples.Shared.Examples.Publisher;
 
 [Example("Direct", key: ConsoleKey.D2)]
-internal class DirectExample : BaseExchangeExample
+public class DirectExample : BaseExchangeExample
 {
     private const string queue1 = "presentation-direct-queue1";
     private const string queue2 = "presentation-direct-queue2";

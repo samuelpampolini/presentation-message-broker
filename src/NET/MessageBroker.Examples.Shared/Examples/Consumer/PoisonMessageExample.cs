@@ -1,12 +1,12 @@
-﻿using MessageBroker.Example.CrossCut;
+using MessageBroker.Example.CrossCut;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 
-namespace MessageBroker.Presentation.Consumer.Examples;
+namespace MessageBroker.Examples.Shared.Examples.Consumer;
 
-[Example("Poison Message", key: ConsoleKey.D2)]
+[Example("Poison Message", key: ConsoleKey.D8)]
 public class PoisonMessageExample : BaseConsumerExample
 {
     public PoisonMessageExample(IConnectionFactory connectionFactory, ILoggerFactory loggerFactory) : base(connectionFactory, loggerFactory) { }
@@ -57,60 +57,5 @@ public class PoisonMessageExample : BaseConsumerExample
             //{"x-message-ttl", 20000}
         };
         await _channel.QueueDeclareAsync(queueName2, durable: true, exclusive: false, autoDelete: false, arguments: queue2Arguments, cancellationToken: ct);
-
-        var consumer = new AsyncEventingBasicConsumer(_channel);
-        consumer.ReceivedAsync += Consumer_ReceivedAsync;
-
-        await _channel.BasicConsumeAsync(
-            queue: queueName1,
-            autoAck: false,
-            consumer: consumer,
-            cancellationToken: ct
-        );
-
-        await _channel.BasicConsumeAsync(
-            queue: queueName2,
-            autoAck: false,
-            consumer: consumer,
-            cancellationToken: ct
-        );
-
-        _channel.CallbackExceptionAsync += CallbackExceptionAsync;
-    }
-
-    private Task CallbackExceptionAsync(object sender, CallbackExceptionEventArgs args)
-    {
-        _logger.LogInformation("An error occurred in the consumer. [{Message}]", args.Exception.Message);
-        return Task.CompletedTask;
-    }
-
-    private async Task Consumer_ReceivedAsync(object sender, BasicDeliverEventArgs eventArgs)
-    {
-        try
-        {
-            var body = eventArgs.Body.ToArray();
-            var message = Encoding.UTF8.GetString(body);
-            _logger.LogInformation("Message: {Message}, Delivery Tag: {DeliveryTag}, Exchange: {Exchange}, and Routing Key: {RoutingKey}", message, eventArgs.DeliveryTag, eventArgs.Exchange, eventArgs.RoutingKey);
-
-            // Simulate processing time
-            await Task.Delay(500);
-
-            if (message.Contains("fail"))
-            {
-                throw new InvalidOperationException("Simulated processing unexpected failure for poison message.");
-            }
-
-            if (_channel is null)
-                throw new InvalidOperationException("Channel is not initialized.");
-
-            await _channel.BasicAckAsync(deliveryTag: eventArgs.DeliveryTag, multiple: true);
-        }
-        catch
-        {
-            if (_channel is not null)
-                await _channel.BasicRejectAsync(deliveryTag: eventArgs.DeliveryTag, requeue: true);
-
-            throw;
-        }
     }
 }

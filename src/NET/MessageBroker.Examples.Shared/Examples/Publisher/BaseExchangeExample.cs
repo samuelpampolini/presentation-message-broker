@@ -1,12 +1,16 @@
-﻿using MessageBroker.Example.CrossCut;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using MessageBroker.Example.CrossCut;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
 
-namespace MessageBroker.Presentation.Publisher.Examples;
+namespace MessageBroker.Examples.Shared.Examples.Publisher;
 
-internal abstract class BaseExchangeExample : IMessageExample
+public abstract class BaseExchangeExample : IMessageExample
 {
     protected readonly IConnectionFactory _connectionFactory;
     protected readonly ILogger _logger;
@@ -130,10 +134,10 @@ internal abstract class BaseExchangeExample : IMessageExample
         }
         else
         {
-            textMessage = JsonSerializer.Serialize(message);
+            textMessage = System.Text.Json.JsonSerializer.Serialize(message);
         }
 
-        var body = Encoding.UTF8.GetBytes(textMessage);
+        var body = System.Text.Encoding.UTF8.GetBytes(textMessage);
 
         // Use the provided exchange or the default ExchangeName
         string exchangeToPublish = exchange ?? ExchangeName;

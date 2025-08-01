@@ -1,12 +1,12 @@
-﻿using MessageBroker.Example.CrossCut;
+using MessageBroker.Example.CrossCut;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 
-namespace MessageBroker.Presentation.Consumer.Examples;
+namespace MessageBroker.Examples.Shared.Examples.Consumer;
 
-[Example("Simple Consumer", key: ConsoleKey.D1)]
+[Example("Simple Consumer", key: ConsoleKey.D7)]
 public class SimpleConsumerExample : BaseConsumerExample
 {
     public SimpleConsumerExample(IConnectionFactory connectionFactory, ILoggerFactory loggerFactory) : base(connectionFactory, loggerFactory) { }
