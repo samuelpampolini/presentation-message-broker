@@ -1,8 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
 using System.Reflection;
+using MessageBroker.Example.CrossCut.Attributes;
+using MessageBroker.Example.CrossCut.Interfaces;
 
-namespace MessageBroker.Example.CrossCut;
+namespace MessageBroker.Example.CrossCut.Factories;
 
 record ExampleDetails(string title, Type typeOfExample);
 

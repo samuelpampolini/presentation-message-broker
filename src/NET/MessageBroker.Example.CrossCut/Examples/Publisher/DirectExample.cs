@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using MessageBroker.Example.CrossCut;
+using MessageBroker.Example.CrossCut.Attributes;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
-namespace MessageBroker.Examples.Shared.Examples.Publisher;
+namespace MessageBroker.Example.CrossCut.Examples.Publisher;
 
 [Example("Direct", key: ConsoleKey.D2)]
 public class DirectExample : BaseExchangeExample

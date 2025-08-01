@@ -1,4 +1,4 @@
-﻿namespace MessageBroker.Example.CrossCut;
+namespace MessageBroker.Example.CrossCut.Interfaces;
 
 public interface IMessageExample : IDisposable
 {

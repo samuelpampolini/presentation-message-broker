@@ -1,4 +1,4 @@
-using MessageBroker.Example.CrossCut;
+using MessageBroker.Example.CrossCut.Interfaces;
 
 namespace MessageBroker.Presentation.ConsoleIO;
 

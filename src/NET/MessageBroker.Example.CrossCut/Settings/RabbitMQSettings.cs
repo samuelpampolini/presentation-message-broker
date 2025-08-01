@@ -1,4 +1,5 @@
-﻿namespace MessageBroker.Example.CrossCut;
+namespace MessageBroker.Example.CrossCut.Settings;
+
 public class RabbitMQSettings
 {
     public string Host { get; set; } = "";

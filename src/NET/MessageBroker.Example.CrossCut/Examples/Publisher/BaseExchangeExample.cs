@@ -1,14 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using MessageBroker.Example.CrossCut;
+using MessageBroker.Example.CrossCut.Interfaces;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System.Text;
-using System.Text.Json;
 
-namespace MessageBroker.Examples.Shared.Examples.Publisher;
+namespace MessageBroker.Example.CrossCut.Examples.Publisher;
 
 public abstract class BaseExchangeExample : IMessageExample
 {
@@ -100,51 +95,32 @@ public abstract class BaseExchangeExample : IMessageExample
         if (cleanUpEnvironment)
         {
             if (_channel is null)
-                throw new InvalidOperationException($"Channel not created, please execute {nameof(InitiateConnections)}");
+                throw new InvalidOperationException($"Channel not created, please execute {nameof(CleanUpTestEnvironment)}");
 
-            await _channel.ExchangeDeleteAsync(ExchangeName, cancellationToken: ct);
-
-            QueuesCreated.ForEach(async queue =>
+            foreach (var queue in QueuesCreated)
             {
-                _logger.LogInformation("Deleting queue: {Queue}", queue);
                 await _channel.QueueDeleteAsync(queue, cancellationToken: ct);
-            });
+            }
+            await _channel.ExchangeDeleteAsync(ExchangeName, cancellationToken: ct);
         }
-
         return cleanUpEnvironment;
     }
 
-    protected Task SendMessageToDefaultExchange<T>(T message, string routingKey = "", CancellationToken cancellationToken = default)
+    public abstract Task SendTestMessages(CancellationToken ct);
+
+    protected async Task SendMessageToDefaultExchange(string message, string routingKey = "", CancellationToken cancellationToken = default)
     {
-        return SendMessage(message, routingKey, ExchangeName, cancellationToken);
+        await SendMessage(message, routingKey, ExchangeName, cancellationToken);
     }
 
-    protected async Task SendMessage<T>(T message, string routingKey = "", string? exchange = null, CancellationToken cancellationToken = default)
+    protected async Task SendMessage(string message, string routingKey, string exchange, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation($"Sending message");
+        _logger.LogInformation($"Sending message: {message}");
 
         if (_channel is null)
-            throw new InvalidOperationException($"Channel not created, please execute {nameof(InitiateConnections)}");
+            throw new InvalidOperationException($"Channel not created, please execute InitiateConnections");
 
-        string textMessage;
-
-        if (message is string stringMessage)
-        {
-            textMessage = stringMessage;
-        }
-        else
-        {
-            textMessage = System.Text.Json.JsonSerializer.Serialize(message);
-        }
-
-        var body = System.Text.Encoding.UTF8.GetBytes(textMessage);
-
-        // Use the provided exchange or the default ExchangeName
-        string exchangeToPublish = exchange ?? ExchangeName;
-
-        _logger.LogInformation("Message: [{Message}] with routing key [{RoutingKey}] to [{Exchange}]", textMessage, routingKey, exchangeToPublish);
-        await _channel.BasicPublishAsync(exchangeToPublish, routingKey, mandatory: true, body: body, cancellationToken: cancellationToken);
+        var body = Encoding.UTF8.GetBytes(message);
+        await _channel.BasicPublishAsync(exchange, routingKey, body: body, cancellationToken: cancellationToken);
     }
-
-    public abstract Task SendTestMessages(CancellationToken ct);
 }

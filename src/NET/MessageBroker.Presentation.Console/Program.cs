@@ -1,10 +1,14 @@
-﻿using MessageBroker.Example.CrossCut;
+﻿using MessageBroker.Example.CrossCut.Interfaces;
+using MessageBroker.Example.CrossCut.Factories;
+using MessageBroker.Example.CrossCut.Settings;
+using MessageBroker.Example.CrossCut.Examples.Publisher;
+using MessageBroker.Example.CrossCut.Examples.Consumer;
 using MessageBroker.Presentation.ConsoleIO;
-using MessageBroker.Examples.Shared.Examples.Publisher;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
+using MessageBroker.Example.CrossCut.Attributes;
 
 // Build a config object, using env vars and JSON providers.
 IConfigurationRoot config = new ConfigurationBuilder()
@@ -17,7 +21,7 @@ var services = new ServiceCollection();
 services.Configure<IConfiguration>(config);
 services.AddSingleton<IExampleInputProvider, ConsoleInputProvider>();
 services.AddSingleton<IExampleOutputHandler, ConsoleOutputHandler>();
-services.AddSingleton<ExampleFactory<FanoutExample>>();
+services.AddSingleton<ExampleFactory<ExampleAttribute>>();
 
 // Register as transient to create a new instance for each example run.
 services.AddTransient<FanoutExample>();
@@ -26,6 +30,8 @@ services.AddTransient<TopicExample>();
 services.AddTransient<HeaderExample>();
 services.AddTransient<ExchangeToExchangeExample>();
 services.AddTransient<AlternateExchangeExample>();
+services.AddTransient<SimpleConsumerExample>();
+services.AddTransient<PoisonMessageExample>();
 
 // Add Logs
 services.AddLogging(builder =>
@@ -56,5 +62,5 @@ services.AddSingleton<IConnectionFactory>(serviceProvider =>
 });
 
 var serviceProvider = services.BuildServiceProvider();
-var exampleFactory = serviceProvider.GetRequiredService<ExampleFactory<FanoutExample>>();
+var exampleFactory = serviceProvider.GetRequiredService<ExampleFactory<ExampleAttribute>>();
 await exampleFactory.StartTests();

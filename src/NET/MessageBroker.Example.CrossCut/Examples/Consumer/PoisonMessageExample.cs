@@ -1,10 +1,8 @@
-using MessageBroker.Example.CrossCut;
+using MessageBroker.Example.CrossCut.Attributes;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using System.Text;
 
-namespace MessageBroker.Examples.Shared.Examples.Consumer;
+namespace MessageBroker.Example.CrossCut.Examples.Consumer;
 
 [Example("Poison Message", key: ConsoleKey.D8)]
 public class PoisonMessageExample : BaseConsumerExample
