@@ -10,15 +10,21 @@ public class ExampleFactory<T>
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger _logger;
+    private readonly IExampleInputProvider _inputProvider;
+    private readonly IExampleOutputHandler _outputHandler;
     private ImmutableSortedDictionary<char, ExampleDetails> _examples;
 
-    public ExampleFactory(IServiceProvider serviceProvider, ILoggerFactory loggerFactory)
+    public ExampleFactory(
+        IServiceProvider serviceProvider,
+        ILoggerFactory loggerFactory,
+        IExampleInputProvider inputProvider,
+        IExampleOutputHandler outputHandler)
     {
         _serviceProvider = serviceProvider;
-
         _logger = loggerFactory.CreateLogger("Main");
+        _inputProvider = inputProvider;
+        _outputHandler = outputHandler;
         _examples = ImmutableSortedDictionary<char, ExampleDetails>.Empty;
-
         LoadExamples();
     }
 
@@ -60,28 +66,28 @@ public class ExampleFactory<T>
 
     public async Task StartTests(CancellationToken ct = default)
     {
-        Console.Clear();
-
         while (true)
         {
-            _logger.LogInformation("Press the number of the example you want to run.\nPress Escape to end the program or the example after it finishes.");
+            await _outputHandler.WriteOutputAsync("Press the number of the example you want to run.\nPress Escape to end the program or the example after it finishes.");
 
-            _examples.ToList().ForEach((Action<KeyValuePair<char, ExampleDetails>>)(e =>
+            foreach (var e in _examples)
             {
-                _logger.LogInformation("{Key} - {Name}", e.Key, e.Value.title);
-            }));
+                await _outputHandler.WriteOutputAsync($"{e.Key} - {e.Value.title}");
+            }
 
-            ConsoleKeyInfo keyInfo = Console.ReadKey();
-            Console.WriteLine();
+            string input = await _inputProvider.GetInputAsync("Select example (or press Escape): ");
+            if (string.IsNullOrEmpty(input))
+                continue;
 
-            if (keyInfo.Key == ConsoleKey.Escape)
+            if (input.Length == 1 && input[0] == 27) // Escape key
                 return;
 
-            IMessageExample? example = CreateExample(keyInfo.KeyChar);
+            char keyChar = input[0];
+            IMessageExample? example = CreateExample(keyChar);
 
             if (example is null)
             {
-                _logger.LogError("Example not found for key {Key}.", keyInfo);
+                await _outputHandler.WriteOutputAsync($"Example not found for key {keyChar}.");
                 return;
             }
 
@@ -93,10 +99,6 @@ public class ExampleFactory<T>
             {
                 example.Dispose();
             }
-
-            _logger.LogInformation("End of test, press any key to continue.");
-            Console.ReadKey();
-            Console.Clear();
         }
     }
 }

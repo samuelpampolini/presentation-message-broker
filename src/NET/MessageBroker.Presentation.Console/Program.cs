@@ -1,4 +1,5 @@
 ﻿using MessageBroker.Example.CrossCut;
+using MessageBroker.Presentation.ConsoleIO;
 using MessageBroker.Examples.Shared.Examples.Publisher;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,8 @@ IConfigurationRoot config = new ConfigurationBuilder()
 
 var services = new ServiceCollection();
 services.Configure<IConfiguration>(config);
+services.AddSingleton<IExampleInputProvider, ConsoleInputProvider>();
+services.AddSingleton<IExampleOutputHandler, ConsoleOutputHandler>();
 services.AddSingleton<ExampleFactory<FanoutExample>>();
 
 // Register as transient to create a new instance for each example run.
@@ -54,5 +57,4 @@ services.AddSingleton<IConnectionFactory>(serviceProvider =>
 
 var serviceProvider = services.BuildServiceProvider();
 var exampleFactory = serviceProvider.GetRequiredService<ExampleFactory<FanoutExample>>();
-
 await exampleFactory.StartTests();
