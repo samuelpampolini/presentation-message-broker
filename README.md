@@ -1,8 +1,8 @@
 
-
 # Message Broker Presentation - RabbitMQ Examples
 
 This project demonstrates RabbitMQ queue types and messaging patterns using C# (.NET 8) and Node.js. It provides:
+
 - A unified .NET Console application to run all publisher and consumer examples
 - A shared library for example logic and input/output abstraction
 - A Node.js poison message consumer for interoperability
@@ -70,14 +70,13 @@ For security, the RabbitMQ password is not stored in `appsettings.json` or any f
 
 - Use .NET user-secrets for local development (see above)
 - For CI/CD or production, use environment variables or a secret store
+
 ## Roadmap
 
 - [x] Unified .NET Console app for RabbitMQ examples
 - [x] Shared CrossCut library for example logic
 - [x] Node.js poison consumer for cross-platform demo
 - [ ] Blazor Server web UI for running examples (coming soon)
-
-## License
 
 ## License
 
