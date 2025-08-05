@@ -1,21 +1,26 @@
 
+
 # Message Broker Presentation - RabbitMQ Examples
 
-This project demonstrates RabbitMQ queue types and messaging patterns using C# (.NET 8) and Node.js. It provides a unified .NET Console application to run all publisher and consumer examples, plus a Node.js poison message consumer for interoperability.
+This project demonstrates RabbitMQ queue types and messaging patterns using C# (.NET 8) and Node.js. It provides:
+- A unified .NET Console application to run all publisher and consumer examples
+- A shared library for example logic and input/output abstraction
+- A Node.js poison message consumer for interoperability
+
+**Blazor Web UI planned:** A Blazor Server web project will soon provide a browser-based UI for running examples. (See roadmap below.)
 
 ## Features
 
 - Unified .NET 8 Console app for all RabbitMQ publisher and consumer examples
-- Clean separation of shared logic and example implementations
+- Clean separation of shared logic and example implementations (CrossCut)
 - Node.js poison message consumer for cross-platform demonstration
 - Secure password management using .NET user-secrets
 
 ## Project Structure
 
 - `src/NET/MessageBroker.Presentation.Console`: .NET 8 console application to run all RabbitMQ examples
-- `src/NET/MessageBroker.Example.CrossCut`: Shared interfaces, attributes, and example selection logic
-- `src/NET/MessageBroker.Examples.Shared`: All example implementations (Publisher and Consumer) in a single shared library
-- `src/NodeJs/poison-consumer.js`: Node.js poison message consumer
+- `src/NET/MessageBroker.Example.CrossCut`: Shared interfaces, attributes, factories, and example selection logic
+- `src/NodeJs/PoisonConsumer.js`: Node.js poison message consumer
 - `images/net-console-options.png`: Example selection menu screenshot
 
 ## Quickstart
@@ -65,6 +70,14 @@ For security, the RabbitMQ password is not stored in `appsettings.json` or any f
 
 - Use .NET user-secrets for local development (see above)
 - For CI/CD or production, use environment variables or a secret store
+## Roadmap
+
+- [x] Unified .NET Console app for RabbitMQ examples
+- [x] Shared CrossCut library for example logic
+- [x] Node.js poison consumer for cross-platform demo
+- [ ] Blazor Server web UI for running examples (coming soon)
+
+## License
 
 ## License
 

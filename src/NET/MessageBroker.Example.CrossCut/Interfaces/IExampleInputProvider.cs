@@ -2,5 +2,5 @@ namespace MessageBroker.Example.CrossCut.Interfaces;
 
 public interface IExampleInputProvider
 {
-    Task<string> GetInputAsync(string prompt);
+    Task<string> GetInputAsync(string prompt, CancellationToken ct);
 }

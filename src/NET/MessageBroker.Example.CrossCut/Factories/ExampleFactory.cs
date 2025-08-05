@@ -70,18 +70,19 @@ public class ExampleFactory<T>
     {
         while (true)
         {
-            await _outputHandler.WriteOutputAsync("Press the number of the example you want to run.\nPress Escape to end the program or the example after it finishes.");
+            await _outputHandler.WriteOutputAsync("Press the number of the example you want to run.\nPress Escape to end the program or the example after it finishes.", ct);
 
             foreach (var e in _examples)
             {
-                await _outputHandler.WriteOutputAsync($"{e.Key} - {e.Value.title}");
+                await _outputHandler.WriteOutputAsync($"{e.Key} - {e.Value.title}", ct);
             }
 
-            string input = await _inputProvider.GetInputAsync("Select example (or press Escape): ");
+            string input = await _inputProvider.GetInputAsync("Select example (or press Escape): ", ct);
             if (string.IsNullOrEmpty(input))
                 continue;
 
-            if (input.Length == 1 && input[0] == 27) // Escape key
+            // Abstracted exit detection for UI-agnostic input providers
+            if (input.Equals("Escape", StringComparison.OrdinalIgnoreCase) || (input.Length == 1 && input[0] == 27))
                 return;
 
             char keyChar = input[0];
@@ -89,8 +90,8 @@ public class ExampleFactory<T>
 
             if (example is null)
             {
-                await _outputHandler.WriteOutputAsync($"Example not found for key {keyChar}.");
-                return;
+                await _outputHandler.WriteOutputAsync($"Example not found for key {keyChar}. Please try again.", ct);
+                continue;
             }
 
             try
@@ -99,7 +100,10 @@ public class ExampleFactory<T>
             }
             finally
             {
-                example.Dispose();
+                if (example is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
             }
         }
     }

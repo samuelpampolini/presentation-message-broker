@@ -4,7 +4,7 @@ namespace MessageBroker.Presentation.ConsoleIO;
 
 public class ConsoleInputProvider : IExampleInputProvider
 {
-    public Task<string> GetInputAsync(string prompt)
+    public Task<string> GetInputAsync(string prompt, CancellationToken ct)
     {
         Console.Write(prompt);
         var keyInfo = Console.ReadKey(intercept: true);
@@ -17,7 +17,7 @@ public class ConsoleInputProvider : IExampleInputProvider
 
 public class ConsoleOutputHandler : IExampleOutputHandler
 {
-    public Task WriteOutputAsync(string message)
+    public Task WriteOutputAsync(string message, CancellationToken ct)
     {
         Console.WriteLine(message);
         return Task.CompletedTask;
