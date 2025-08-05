@@ -8,7 +8,7 @@ namespace MessageBroker.Example.CrossCut.Factories;
 
 record ExampleDetails(string title, Type typeOfExample);
 
-public class ExampleFactory<T>
+public class ExampleFactory
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger _logger;
@@ -34,7 +34,7 @@ public class ExampleFactory<T>
     {
         var loadingDictionary = new Dictionary<char, ExampleDetails>();
 
-        typeof(T).Assembly
+        typeof(ExampleFactory).Assembly
            .GetTypes()
            .Where(typeOfExample => typeOfExample.GetCustomAttributes<ExampleAttribute>().Any())
            .ToList()

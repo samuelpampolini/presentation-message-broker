@@ -1,8 +1,7 @@
 ﻿using MessageBroker.Example.CrossCut.Interfaces;
 using MessageBroker.Example.CrossCut.Factories;
 using MessageBroker.Example.CrossCut.Settings;
-using MessageBroker.Example.CrossCut.Examples.Publisher;
-using MessageBroker.Example.CrossCut.Examples.Consumer;
+using MessageBroker.Example.CrossCut.Extensions;
 using MessageBroker.Presentation.ConsoleIO;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,19 +18,9 @@ IConfigurationRoot config = new ConfigurationBuilder()
 
 var services = new ServiceCollection();
 services.Configure<IConfiguration>(config);
+services.AddMessageBrokerCrossCut();
 services.AddSingleton<IExampleInputProvider, ConsoleInputProvider>();
 services.AddSingleton<IExampleOutputHandler, ConsoleOutputHandler>();
-services.AddSingleton<ExampleFactory<ExampleAttribute>>();
-
-// Register as transient to create a new instance for each example run.
-services.AddTransient<FanoutExample>();
-services.AddTransient<DirectExample>();
-services.AddTransient<TopicExample>();
-services.AddTransient<HeaderExample>();
-services.AddTransient<ExchangeToExchangeExample>();
-services.AddTransient<AlternateExchangeExample>();
-services.AddTransient<SimpleConsumerExample>();
-services.AddTransient<PoisonMessageExample>();
 
 // Add Logs
 services.AddLogging(builder =>
@@ -62,5 +51,5 @@ services.AddSingleton<IConnectionFactory>(serviceProvider =>
 });
 
 var serviceProvider = services.BuildServiceProvider();
-var exampleFactory = serviceProvider.GetRequiredService<ExampleFactory<ExampleAttribute>>();
+var exampleFactory = serviceProvider.GetRequiredService<ExampleFactory>();
 await exampleFactory.StartTests();
