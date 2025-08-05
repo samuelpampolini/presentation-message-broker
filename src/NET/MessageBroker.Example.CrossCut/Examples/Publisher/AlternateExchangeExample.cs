@@ -1,11 +1,11 @@
-﻿using MessageBroker.Example.CrossCut;
+using MessageBroker.Example.CrossCut.Attributes;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
-namespace MessageBroker.Presentation.Publisher.Examples;
+namespace MessageBroker.Example.CrossCut.Examples.Publisher;
 
 [Example("Alternate Exchange", key: ConsoleKey.D6)]
-internal class AlternateExchangeExample : BaseExchangeExample
+public class AlternateExchangeExample : BaseExchangeExample
 {
     private const string queue1 = "presentation-alternate-exchange-queue1";
     private const string queue2 = "presentation-alternate-exchange-queue2";
@@ -39,7 +39,6 @@ internal class AlternateExchangeExample : BaseExchangeExample
         _logger.LogInformation("Binding queues with the respective routing keys: abc and dfg");
         await _channel.QueueBindAsync(queue1, ExchangeName, routingKey: "abc", cancellationToken: ct);
         await _channel.QueueBindAsync(queue2, ExchangeName, routingKey: "dfg", cancellationToken: ct);
-
 
         // bind to the fan out exchange
         await _channel.QueueBindAsync(queue3, ExchangeNameFanOut, routingKey: "", cancellationToken: ct);

@@ -1,3 +1,5 @@
+# Ignore environment files for Console project
+.env
 
 .vs/
 node_modules/

@@ -1,24 +1,32 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
 using System.Reflection;
+using MessageBroker.Example.CrossCut.Attributes;
+using MessageBroker.Example.CrossCut.Interfaces;
 
-namespace MessageBroker.Example.CrossCut;
+namespace MessageBroker.Example.CrossCut.Factories;
 
 record ExampleDetails(string title, Type typeOfExample);
 
-public class ExampleFactory<T>
+public class ExampleFactory
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger _logger;
+    private readonly IExampleInputProvider _inputProvider;
+    private readonly IExampleOutputHandler _outputHandler;
     private ImmutableSortedDictionary<char, ExampleDetails> _examples;
 
-    public ExampleFactory(IServiceProvider serviceProvider, ILoggerFactory loggerFactory)
+    public ExampleFactory(
+        IServiceProvider serviceProvider,
+        ILoggerFactory loggerFactory,
+        IExampleInputProvider inputProvider,
+        IExampleOutputHandler outputHandler)
     {
         _serviceProvider = serviceProvider;
-
         _logger = loggerFactory.CreateLogger("Main");
+        _inputProvider = inputProvider;
+        _outputHandler = outputHandler;
         _examples = ImmutableSortedDictionary<char, ExampleDetails>.Empty;
-
         LoadExamples();
     }
 
@@ -26,7 +34,7 @@ public class ExampleFactory<T>
     {
         var loadingDictionary = new Dictionary<char, ExampleDetails>();
 
-        typeof(T).Assembly
+        typeof(ExampleFactory).Assembly
            .GetTypes()
            .Where(typeOfExample => typeOfExample.GetCustomAttributes<ExampleAttribute>().Any())
            .ToList()
@@ -60,29 +68,30 @@ public class ExampleFactory<T>
 
     public async Task StartTests(CancellationToken ct = default)
     {
-        Console.Clear();
-
         while (true)
         {
-            _logger.LogInformation("Press the number of the example you want to run.\nPress Escape to end the program or the example after it finishes.");
+            await _outputHandler.WriteOutputAsync("Press the number of the example you want to run.\nPress Escape to end the program or the example after it finishes.", ct);
 
-            _examples.ToList().ForEach((Action<KeyValuePair<char, ExampleDetails>>)(e =>
+            foreach (var e in _examples)
             {
-                _logger.LogInformation("{Key} - {Name}", e.Key, e.Value.title);
-            }));
+                await _outputHandler.WriteOutputAsync($"{e.Key} - {e.Value.title}", ct);
+            }
 
-            ConsoleKeyInfo keyInfo = Console.ReadKey();
-            Console.WriteLine();
+            string input = await _inputProvider.GetInputAsync("Select example (or press Escape): ", ct);
+            if (string.IsNullOrEmpty(input))
+                continue;
 
-            if (keyInfo.Key == ConsoleKey.Escape)
+            // Abstracted exit detection for UI-agnostic input providers
+            if (input.Equals("Escape", StringComparison.OrdinalIgnoreCase) || (input.Length == 1 && input[0] == 27))
                 return;
 
-            IMessageExample? example = CreateExample(keyInfo.KeyChar);
+            char keyChar = input[0];
+            IMessageExample? example = CreateExample(keyChar);
 
             if (example is null)
             {
-                _logger.LogError("Example not found for key {Key}.", keyInfo);
-                return;
+                await _outputHandler.WriteOutputAsync($"Example not found for key {keyChar}. Please try again.", ct);
+                continue;
             }
 
             try
@@ -91,12 +100,11 @@ public class ExampleFactory<T>
             }
             finally
             {
-                example.Dispose();
+                if (example is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
             }
-
-            _logger.LogInformation("End of test, press any key to continue.");
-            Console.ReadKey();
-            Console.Clear();
         }
     }
 }

@@ -1,13 +1,13 @@
-﻿using MessageBroker.Example.CrossCut;
+using MessageBroker.Example.CrossCut.Attributes;
 using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Text.Json;
 using RabbitMQ.Client;
 
-namespace MessageBroker.Presentation.Publisher.Examples;
+namespace MessageBroker.Example.CrossCut.Examples.Publisher;
 
 [Example("Header", key: ConsoleKey.D4)]
-internal class HeaderExample : BaseExchangeExample
+public class HeaderExample : BaseExchangeExample
 {
     private const string queue1 = "presentation-header-queue1";
     private const string queue2 = "presentation-header-queue2";

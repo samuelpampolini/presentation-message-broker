@@ -1,4 +1,4 @@
-﻿namespace MessageBroker.Example.CrossCut;
+namespace MessageBroker.Example.CrossCut.Attributes;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public class ExampleAttribute : Attribute

@@ -1,11 +1,11 @@
-﻿using MessageBroker.Example.CrossCut;
+using MessageBroker.Example.CrossCut.Attributes;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
-namespace MessageBroker.Presentation.Publisher.Examples;
+namespace MessageBroker.Example.CrossCut.Examples.Publisher;
 
 [Example("Exchange to Exchange", key: ConsoleKey.D5)]
-internal class ExchangeToExchangeExample : BaseExchangeExample
+public class ExchangeToExchangeExample : BaseExchangeExample
 {
     private const string queue1 = "presentation-exchange-to-exchange-queue1";
     private const string queue2 = "presentation-exchange-to-exchange-queue2";

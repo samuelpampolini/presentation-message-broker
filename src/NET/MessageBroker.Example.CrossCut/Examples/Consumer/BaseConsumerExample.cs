@@ -1,8 +1,8 @@
-﻿using MessageBroker.Example.CrossCut;
+using MessageBroker.Example.CrossCut.Interfaces;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
-namespace MessageBroker.Presentation.Consumer.Examples;
+namespace MessageBroker.Example.CrossCut.Examples.Consumer;
 
 public abstract class BaseConsumerExample : IMessageExample
 {

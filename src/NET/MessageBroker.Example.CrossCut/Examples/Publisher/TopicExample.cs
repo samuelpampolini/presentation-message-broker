@@ -1,11 +1,11 @@
-﻿using MessageBroker.Example.CrossCut;
+using MessageBroker.Example.CrossCut.Attributes;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
-namespace MessageBroker.Presentation.Publisher.Examples;
+namespace MessageBroker.Example.CrossCut.Examples.Publisher;
 
 [Example("Topic", key: ConsoleKey.D3)]
-internal class TopicExample : BaseExchangeExample
+public class TopicExample : BaseExchangeExample
 {
     private const string queue1 = "presentation-topic-queue1";
     private const string queue2 = "presentation-topic-queue2";
@@ -24,12 +24,6 @@ internal class TopicExample : BaseExchangeExample
         if (_channel is null)
             throw new InvalidOperationException("Channel not created");
 
-        /*
-         * exclusive: Should this queue use be limited to its declaring connection?
-         * Such a queue will be deleted when its declaring connection closes.
-         * 
-         * autoDelete: Should this queue be auto-deleted when its last consumer (if any) unsubscribes?
-         */
         await _channel.QueueDeclareAsync(queue1, durable: true, exclusive: false, autoDelete: false, arguments: null, cancellationToken: ct);
         await _channel.QueueDeclareAsync(queue2, durable: true, exclusive: false, autoDelete: false, arguments: null, cancellationToken: ct);
         await _channel.QueueDeclareAsync(queue3, durable: true, exclusive: false, autoDelete: false, arguments: null, cancellationToken: ct);

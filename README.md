@@ -1,59 +1,27 @@
+
 # Message Broker Presentation - RabbitMQ Examples
 
-Example of RabbitMQ and Queue Types using C# and NodeJS, exploring the different types of queues and how to consume messages from them.
+This project demonstrates RabbitMQ queue types and messaging patterns using C# (.NET 8) and Node.js. It provides:
 
-## Table Of Contents
+- A unified .NET Console application to run all publisher and consumer examples
+- A shared library for example logic and input/output abstraction
+- A Node.js poison message consumer for interoperability
 
-- [RabbitMQ](#rabbitmq)
-- [Queue Types](#queue-types)
-- [Project Structure](#project-structure)
-- [Naming Conventions for Queues and Exchanges](#naming-conventions-for-queues-and-exchanges)
-- [Quickstart](#quickstart)
-- [Consumers](#consumers)
-- [Troubleshooting](#troubleshooting)
-- [License](#license)
+**Blazor Web UI planned:** A Blazor Server web project will soon provide a browser-based UI for running examples. (See roadmap below.)
 
-## RabbitMQ
+## Features
 
-RabbitMQ is an open-source message broker software that facilitates communication between different parts of a system by sending messages between them. It is based on the Advanced Message Queuing Protocol (AMQP) and supports various messaging patterns, including point-to-point, publish/subscribe, and request/reply.
-
-RabbitMQ is designed to be reliable, scalable, and flexible, making it suitable for a wide range of applications. It can be used for various purposes, such as decoupling microservices, implementing event-driven architectures, and handling background tasks.
-[Official Documentation](https://www.rabbitmq.com/docs)
-
-## Queue Types
-
-Supported RabbitMQ queue types:
-
-- **Fanout**: Broadcasts messages to all bound queues.
-- **Direct**: Routes messages by routing key.
-- **Topic**: Pattern-based routing.
-- **Header**: Routing based on message headers.
-- **Exchange to Exchange**: Demonstrates exchange chaining.
-- **Alternate Exchange**: Handles messages that cannot be routed.
+- Unified .NET 8 Console app for all RabbitMQ publisher and consumer examples
+- Clean separation of shared logic and example implementations (CrossCut)
+- Node.js poison message consumer for cross-platform demonstration
+- Secure password management using .NET user-secrets
 
 ## Project Structure
 
-- `src/NET/MessageBroker.Presentation.Publisher`: .NET publisher examples
-- `src/NET/MessageBroker.Presentation.Consumer`: .NET consumer examples
-- `src/NET/MessageBroker.Example.CrossCut`: Shared interfaces, attributes, and example selection logic
-- `src/NodeJs/poison-consumer.js`: Node.js poison message consumer
+- `src/NET/MessageBroker.Presentation.Console`: .NET 8 console application to run all RabbitMQ examples
+- `src/NET/MessageBroker.Example.CrossCut`: Shared interfaces, attributes, factories, and example selection logic
+- `src/NodeJs/PoisonConsumer.js`: Node.js poison message consumer
 - `images/net-console-options.png`: Example selection menu screenshot
-
-## Naming Conventions for Queues and Exchanges
-
-Queue and exchange names in this project are explicit and descriptive to make it easy to identify their purpose and origin. The conventions are:
-
-- **Prefix**: Names start with `presentation-` to indicate they are part of this demo project.
-- **Language/Component**: The next part (e.g., `node`, `net`) indicates the technology or consumer type.
-- **Purpose/Pattern**: The name includes the pattern or role, such as `poison-message`, `dld` (dead letter), or the queue type.
-- **Numbering**: If multiple related queues are used, a numeric suffix (e.g., `-1`) is added for clarity.
-
-**Examples:**
-- `presentation-node-poison-message-1`: Node.js poison message queue example.
-- `presentation-node-poison-message-dld`: Dead letter queue for Node.js poison message example.
-- `presentation-node-poison-exchange-dld`: Dead letter exchange for Node.js poison message example.
-
-This convention helps quickly identify the queue/exchange's role, technology, and pattern when debugging or extending the project.
 
 ## Quickstart
 
@@ -65,11 +33,18 @@ This convention helps quickly identify the queue/exchange's role, technology, an
 
 2. **Access RabbitMQ Management:**  
    [http://localhost:15672](http://localhost:15672) (user/pass: guest/guest)
-3. **Run Publisher (.NET):**
+
+3. **Set RabbitMQ password for .NET app (local dev):**
+
+   ```powershell
+   dotnet user-secrets set "MessageBroker:RabbitMQ:Password" "guest" --project src/NET/MessageBroker.Presentation.Console/MessageBroker.Presentation.Console.csproj
+   ```
+
+4. **Run all .NET examples:**
 
    ```bash
-   cd src/NET/MessageBroker.Presentation.Publisher
-   dotnet run -project MessageBroker.Presentation.csproj
+   cd src/NET/MessageBroker.Presentation.Console
+   dotnet run --project MessageBroker.Presentation.Console.csproj
    ```
 
    Choose a queue type from the menu:
@@ -79,14 +54,9 @@ This convention helps quickly identify the queue/exchange's role, technology, an
    - `4` Header
    - `5` Exchange to Exchange
    - `6` Alternate Exchange
-4. **Run Consumer (.NET):**
+   - `7` Simple Consumer (for testing)
+   - `8` Poison Consumer (.NET)
 
-   ```bash
-   cd src/NET/MessageBroker.Presentation.Consumer
-   dotnet run -project MessageBroker.Presentation.Consumer
-   ```
-
-   - Enter `1` for Simple Consumer, `2` for Poison Message Consumer.
 5. **Run Poison Consumer (Node.js):**
 
    ```bash
@@ -94,44 +64,19 @@ This convention helps quickly identify the queue/exchange's role, technology, an
    npm run start
    ```
 
-## Consumers
+## Secure RabbitMQ Password Usage
 
-### Simple Consumer (.NET)
+For security, the RabbitMQ password is not stored in `appsettings.json` or any file committed to source control.
 
-- Run:
+- Use .NET user-secrets for local development (see above)
+- For CI/CD or production, use environment variables or a secret store
 
-  ```bash
-  dotnet run -project MessageBroker.Presentation.Consumer
-  ```
+## Roadmap
 
-  Enter `1` at the menu to start the simple consumer.
-
-### Poison Message Consumer (.NET)
-
-- Run:
-
-  ```bash
-  dotnet run -project MessageBroker.Presentation.Consumer
-  ```
-
-  Enter `2` at the menu to start the poison message consumer (demonstrates Dead Letter Exchange).
-
-### Poison Message Consumer (Node.js)
-
-- Run:
-
-  ```bash
-  npm run start
-  ```
-
-## Troubleshooting
-
-- **RabbitMQ not running:**
-  Ensure Docker is running and use `docker-compose up -d`.
-- **Connection issues:**
-  Check RabbitMQ management at [http://localhost:15672](http://localhost:15672).
-- **Menu not showing:**
-  Make sure you are running the correct project and in the right directory.
+- [x] Unified .NET Console app for RabbitMQ examples
+- [x] Shared CrossCut library for example logic
+- [x] Node.js poison consumer for cross-platform demo
+- [ ] Blazor Server web UI for running examples (coming soon)
 
 ## License
 
