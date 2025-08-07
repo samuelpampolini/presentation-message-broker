@@ -115,7 +115,7 @@ public abstract class BaseExchangeExample : IMessageExample
 
     protected async Task SendMessage(string message, string routingKey, string exchange, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation($"Sending message: {message}");
+        _logger.LogInformation("Sending message: {Message}", message);
 
         if (_channel is null)
             throw new InvalidOperationException($"Channel not created, please execute InitiateConnections");
