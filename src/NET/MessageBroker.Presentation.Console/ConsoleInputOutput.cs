@@ -17,9 +17,29 @@ public class ConsoleInputProvider : IExampleInputProvider
 
 public class ConsoleOutputHandler : IExampleOutputHandler
 {
+    public Task ClearScreenAsync(CancellationToken ct)
+    {
+        Console.Clear();
+        return Task.CompletedTask;
+    }
+
     public Task WriteOutputAsync(string message, CancellationToken ct)
     {
         Console.WriteLine(message);
+        return Task.CompletedTask;
+    }
+
+    public Task RenderMenuAsync(IReadOnlyDictionary<char, MessageBroker.Example.CrossCut.Factories.ExampleDetails> examples, CancellationToken ct)
+    {
+        Console.WriteLine("\nAvailable Examples:");
+        Console.WriteLine("+-----+-------------------------------+");
+        Console.WriteLine("| Key | Example Name                  |");
+        Console.WriteLine("+-----+-------------------------------+");
+        foreach (var e in examples)
+        {
+            Console.WriteLine($"|  {e.Key}  | {e.Value.title,-29} |");
+        }
+        Console.WriteLine("+-----+-------------------------------+");
         return Task.CompletedTask;
     }
 }
