@@ -1,6 +1,7 @@
 using MessageBroker.Example.CrossCut.Attributes;
 using Microsoft.Extensions.Logging;
 using System.Text;
+using MessageBroker.Example.CrossCut.Interfaces;
 using System.Text.Json;
 using RabbitMQ.Client;
 
@@ -16,7 +17,8 @@ public class HeaderExample : BaseExchangeExample
     protected override string TypeOfExchange => ExchangeType.Headers;
     protected override List<string> QueuesCreated => new() { queue1, queue2 };
 
-    public HeaderExample(IConnectionFactory connectionFactory, ILoggerFactory loggerFactory) : base(connectionFactory, loggerFactory) { }
+    public HeaderExample(IConnectionFactory connectionFactory, IExampleInputProvider inputProvider, IExampleOutputHandler outputHandler)
+        : base(connectionFactory, inputProvider, outputHandler) { }
 
     protected override async Task CreateTestEnvironment(CancellationToken ct = default)
     {
@@ -28,7 +30,7 @@ public class HeaderExample : BaseExchangeExample
         await _channel.QueueDeclareAsync(queue1, durable: true, exclusive: false, autoDelete: false, arguments: null, cancellationToken: ct);
         await _channel.QueueDeclareAsync(queue2, durable: true, exclusive: false, autoDelete: false, arguments: null, cancellationToken: ct);
 
-        _logger.LogInformation("Binding queues with the respective routing keys: #.order, new.order.book, and *.order.*");
+        await _outputHandler.WriteOutputAsync("Binding queues with the respective routing keys: #.order, new.order.book, and *.order.*", ct);
 
         var headerQueue1 = new Dictionary<string, object?> {
             {"x-match", "all"},
@@ -66,7 +68,7 @@ public class HeaderExample : BaseExchangeExample
 
     protected async Task SendMessage<T>(T message, IDictionary<string, object?> headerValues, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation($"Sending message");
+        await _outputHandler.WriteOutputAsync($"Sending message", cancellationToken);
 
         if (_channel is null)
             throw new InvalidOperationException($"Channel not created, please execute InitiateConnections");
@@ -86,7 +88,7 @@ public class HeaderExample : BaseExchangeExample
         var properties = new BasicProperties();
         properties.Headers = headerValues;
 
-        _logger.LogInformation("Message: {Message}", textMessage);
+        await _outputHandler.WriteOutputAsync($"Message: {textMessage}", cancellationToken);
         await _channel.BasicPublishAsync(ExchangeName,
             routingKey: string.Empty,
             mandatory: true,

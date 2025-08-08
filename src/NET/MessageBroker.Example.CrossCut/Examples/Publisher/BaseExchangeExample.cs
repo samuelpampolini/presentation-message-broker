@@ -1,5 +1,4 @@
 using MessageBroker.Example.CrossCut.Interfaces;
-using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System.Text;
 
@@ -8,7 +7,8 @@ namespace MessageBroker.Example.CrossCut.Examples.Publisher;
 public abstract class BaseExchangeExample : IMessageExample
 {
     protected readonly IConnectionFactory _connectionFactory;
-    protected readonly ILogger _logger;
+    protected readonly IExampleInputProvider _inputProvider;
+    protected readonly IExampleOutputHandler _outputHandler;
     protected IConnection? _connection;
     protected IChannel? _channel;
     private bool _disposed;
@@ -17,10 +17,13 @@ public abstract class BaseExchangeExample : IMessageExample
     protected abstract string TypeOfExchange { get; }
     protected abstract List<string> QueuesCreated { get; }
 
-    protected BaseExchangeExample(IConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
+    protected BaseExchangeExample(IConnectionFactory connectionFactory,
+     IExampleInputProvider inputProvider,
+     IExampleOutputHandler outputHandler)
     {
         _connectionFactory = connectionFactory;
-        _logger = loggerFactory.CreateLogger(this.GetType().Name);
+        _inputProvider = inputProvider;
+        _outputHandler = outputHandler;
     }
     public void Dispose()
     {
@@ -35,7 +38,7 @@ public abstract class BaseExchangeExample : IMessageExample
 
         if (disposing)
         {
-            _logger.LogInformation("Disposing resources...");
+            _outputHandler.WriteOutputAsync("Disposing resources...", default).Wait();
             if (_channel is not null)
             {
                 _channel.Dispose();
@@ -57,19 +60,17 @@ public abstract class BaseExchangeExample : IMessageExample
         await InitiateConnections(ct);
         await CreateTestEnvironment(ct);
 
-        _logger.LogInformation("Environment is ready, press any Key to send the messages");
-        Console.ReadKey();
-        Console.WriteLine();
+        await _inputProvider.GetInputAsync("Environment is ready, press any Key to send the messages", ct);
 
         await SendTestMessages(ct);
         await CleanUpTestEnvironment(ct);
 
-        _logger.LogInformation("Example completed successfully");
+        await _outputHandler.WriteOutputAsync("Example completed successfully", ct);
     }
 
     private async Task InitiateConnections(CancellationToken ct)
     {
-        _logger.LogInformation("Preparing the environment");
+        await _outputHandler.WriteOutputAsync("Preparing the environment", ct);
 
         _connection = await _connectionFactory.CreateConnectionAsync(ct);
         _channel = await _connection.CreateChannelAsync(cancellationToken: ct);
@@ -77,7 +78,7 @@ public abstract class BaseExchangeExample : IMessageExample
 
     protected virtual async Task CreateTestEnvironment(CancellationToken ct)
     {
-        _logger.LogInformation("Creating the Necessary Setup");
+        await _outputHandler.WriteOutputAsync("Creating the Necessary Setup", ct);
 
         if (_channel is null)
             throw new InvalidOperationException($"Channel not created, please execute {nameof(CreateTestEnvironment)}");
@@ -89,8 +90,8 @@ public abstract class BaseExchangeExample : IMessageExample
     protected virtual async Task<bool> CleanUpTestEnvironment(CancellationToken ct)
     {
         // Leave the environment to check on RabbitMQ interface
-        _logger.LogInformation("Do you want to clean up the test Environment? (Y/N)");
-        bool cleanUpEnvironment = Console.ReadKey().Key == ConsoleKey.Y;
+        string input = await _inputProvider.GetInputAsync("Do you want to clean up the test Environment? (Y/N)", ct);
+        bool cleanUpEnvironment = input.Equals("Y", StringComparison.OrdinalIgnoreCase);
         // Clean up the environment
         if (cleanUpEnvironment)
         {
@@ -115,7 +116,7 @@ public abstract class BaseExchangeExample : IMessageExample
 
     protected async Task SendMessage(string message, string routingKey, string exchange, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Sending message: {Message}", message);
+        await _outputHandler.WriteOutputAsync($"Sending message: {message}", cancellationToken);
 
         if (_channel is null)
             throw new InvalidOperationException($"Channel not created, please execute InitiateConnections");

@@ -11,19 +11,16 @@ record ExampleDetails(string title, Type typeOfExample);
 public class ExampleFactory
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger _logger;
     private readonly IExampleInputProvider _inputProvider;
     private readonly IExampleOutputHandler _outputHandler;
     private ImmutableSortedDictionary<char, ExampleDetails> _examples;
 
     public ExampleFactory(
         IServiceProvider serviceProvider,
-        ILoggerFactory loggerFactory,
         IExampleInputProvider inputProvider,
         IExampleOutputHandler outputHandler)
     {
         _serviceProvider = serviceProvider;
-        _logger = loggerFactory.CreateLogger("Main");
         _inputProvider = inputProvider;
         _outputHandler = outputHandler;
         _examples = ImmutableSortedDictionary<char, ExampleDetails>.Empty;
@@ -49,13 +46,13 @@ public class ExampleFactory
         _examples = loadingDictionary.ToImmutableSortedDictionary();
     }
 
-    private IMessageExample? CreateExample(char keyChar)
+    private async Task<IMessageExample?> CreateExample(char keyChar, CancellationToken ct)
     {
         if (_examples.ContainsKey(keyChar))
         {
             var exampleInformation = _examples[keyChar];
 
-            _logger.LogInformation("Creating example of type {Type}", exampleInformation.title);
+            await _outputHandler.WriteOutputAsync($"Creating example of type {exampleInformation.title}", ct);
 
             // get a fresh instance of the example.
             var implementation = _serviceProvider.GetService(exampleInformation.typeOfExample) as IMessageExample;
@@ -86,7 +83,7 @@ public class ExampleFactory
                 return;
 
             char keyChar = input[0];
-            IMessageExample? example = CreateExample(keyChar);
+            IMessageExample? example = await CreateExample(keyChar, ct);
 
             if (example is null)
             {
