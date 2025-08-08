@@ -50,6 +50,10 @@ services.AddSingleton<IConnectionFactory>(serviceProvider =>
     return connectionFactory;
 });
 
+
 var serviceProvider = services.BuildServiceProvider();
 var exampleFactory = serviceProvider.GetRequiredService<ExampleFactory>();
+
+// Show menu table before running StartTests (redundant, but for demonstration)
+
 await exampleFactory.StartTests();
