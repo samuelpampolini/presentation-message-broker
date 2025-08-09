@@ -8,6 +8,8 @@ public abstract class BaseConsumerExample : IMessageExample
 {
     protected readonly IConnectionFactory _connectionFactory;
     protected readonly ILogger _logger;
+    protected readonly IExampleInputProvider _inputProvider;
+    protected readonly IExampleOutputHandler _outputHandler;
     protected IConnection? _connection;
     protected IChannel? _channel;
     private bool _disposed;
@@ -16,6 +18,9 @@ public abstract class BaseConsumerExample : IMessageExample
     {
         _connectionFactory = connectionFactory;
         _logger = loggerFactory.CreateLogger(this.GetType().Name);
+        // These should be injected in derived classes
+        _inputProvider = null!;
+        _outputHandler = null!;
     }
 
     public void Dispose()
@@ -56,7 +61,10 @@ public abstract class BaseConsumerExample : IMessageExample
         await SetupConsumingQueues(ct);
 
         _logger.LogInformation("Press any key to stop this example:");
-        Console.ReadKey();
+        if (_outputHandler != null)
+            await _outputHandler.WriteOutputAsync("Press any key to stop this example:", ct);
+        if (_inputProvider != null)
+            await _inputProvider.GetInputAsync("", ct);
     }
 
     private async Task InitiateConnections(CancellationToken ct)

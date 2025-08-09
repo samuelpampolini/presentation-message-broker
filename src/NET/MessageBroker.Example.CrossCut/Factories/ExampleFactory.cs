@@ -6,10 +6,14 @@ using MessageBroker.Example.CrossCut.Interfaces;
 
 namespace MessageBroker.Example.CrossCut.Factories;
 
-record ExampleDetails(string title, Type typeOfExample);
+public record ExampleDetails(string title, Type typeOfExample);
 
 public class ExampleFactory
 {
+    public IReadOnlyDictionary<char, ExampleDetails> GetExamples()
+    {
+        return _examples;
+    }
     private readonly IServiceProvider _serviceProvider;
     private readonly IExampleInputProvider _inputProvider;
     private readonly IExampleOutputHandler _outputHandler;
@@ -63,16 +67,15 @@ public class ExampleFactory
         return null;
     }
 
+
+    // The output handler is now responsible for rendering the menu
+
     public async Task StartTests(CancellationToken ct = default)
     {
         while (true)
         {
-            await _outputHandler.WriteOutputAsync("Press the number of the example you want to run.\nPress Escape to end the program or the example after it finishes.", ct);
-
-            foreach (var e in _examples)
-            {
-                await _outputHandler.WriteOutputAsync($"{e.Key} - {e.Value.title}", ct);
-            }
+            // Delegate menu rendering to the output handler
+            await _outputHandler.RenderMenuAsync(_examples, ct);
 
             string input = await _inputProvider.GetInputAsync("Select example (or press Escape): ", ct);
             if (string.IsNullOrEmpty(input))
@@ -102,6 +105,10 @@ public class ExampleFactory
                     disposable.Dispose();
                 }
             }
+            // Clear console after example completes
+            await _outputHandler.WriteOutputAsync("\nPress any key to continue...", ct);
+            await _inputProvider.GetInputAsync("", ct);
+            await _outputHandler.ClearScreenAsync(ct);
         }
     }
 }

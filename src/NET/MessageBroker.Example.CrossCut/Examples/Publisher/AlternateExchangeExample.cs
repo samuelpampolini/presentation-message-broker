@@ -1,6 +1,5 @@
 using MessageBroker.Example.CrossCut.Interfaces;
 using MessageBroker.Example.CrossCut.Attributes;
-using MessageBroker.Example.CrossCut.Interfaces;
 using RabbitMQ.Client;
 
 namespace MessageBroker.Example.CrossCut.Examples.Publisher;
