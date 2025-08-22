@@ -1,3 +1,4 @@
+
 using MessageBroker.Example.CrossCut.Interfaces;
 using MessageBroker.Presentation.Api.Support;
 using MessageBroker.Example.CrossCut.Settings;
@@ -6,8 +7,24 @@ using FastEndpoints;
 using MessageBroker.Example.CrossCut.Factories;
 using MessageBroker.Example.CrossCut.Extensions;
 
+
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
+
+// Enable CORS for localhost (React dev server)
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+                      policy =>
+                      {
+                          policy.WithOrigins(
+                            "http://localhost:5042",
+                            "http://localhost:5173"
+                          )
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                      });
+});
 
 // Register API-specific input/output providers
 builder.Services.AddSingleton<IExampleInputProvider, ApiInputProvider>();
@@ -37,8 +54,10 @@ builder.Services.AddFastEndpoints();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
 var app = builder.Build();
 
+app.UseCors();
 app.UseFastEndpoints();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
