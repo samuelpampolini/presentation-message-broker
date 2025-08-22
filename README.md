@@ -7,11 +7,12 @@ This project demonstrates RabbitMQ queue types and messaging patterns using C# (
 - A shared library for example logic and input/output abstraction
 - A Node.js poison message consumer for interoperability
 
-**Blazor Web UI planned:** A Blazor Server web project will soon provide a browser-based UI for running examples. (See roadmap below.)
+**REST API included:** A .NET 8 Web API project exposes all example operations and available steps via FastEndpoints and Swagger UI. (See below.)
 
 ## Features
 
 - Unified .NET 8 Console app for all RabbitMQ publisher and consumer examples
+- .NET 8 REST API with FastEndpoints and Swagger UI for stateless, stepwise example execution
 - Clean separation of shared logic and example implementations (CrossCut)
 - Node.js poison message consumer for cross-platform demonstration
 - Secure password management using .NET user-secrets
@@ -19,6 +20,7 @@ This project demonstrates RabbitMQ queue types and messaging patterns using C# (
 ## Project Structure
 
 - `src/NET/MessageBroker.Presentation.Console`: .NET 8 console application to run all RabbitMQ examples
+- `src/NET/MessageBroker.Presentation.Api`: .NET 8 REST API with FastEndpoints and Swagger UI
 - `src/NET/MessageBroker.Example.CrossCut`: Shared interfaces, attributes, factories, and example selection logic
 - `src/NodeJs/PoisonConsumer.js`: Node.js poison message consumer
 - `images/net-console-options.png`: Example selection menu screenshot
@@ -36,8 +38,14 @@ This project demonstrates RabbitMQ queue types and messaging patterns using C# (
 
 3. **Set RabbitMQ password for .NET app (local dev):**
 
+   First run the User secrets Init
+
    ```powershell
-   dotnet user-secrets set "MessageBroker:RabbitMQ:Password" "guest" --project src/NET/MessageBroker.Presentation.Console/MessageBroker.Presentation.Console.csproj
+   dotnet user-secrets init --project src/NET/MessageBroker.Presentation.Console/MessageBroker.Presentation.Console.csproj && dotnet user-secrets init --project src/NET/MessageBroker.Presentation.Api/MessageBroker.Presentation.Api.csproj
+   ```
+
+   ```powershell
+   dotnet user-secrets set "MessageBroker:RabbitMQ:Password" "guest" --project src/NET/MessageBroker.Presentation.Console/MessageBroker.Presentation.Console.csproj && dotnet user-secrets set "MessageBroker:RabbitMQ:Password" "guest" --project src/NET/MessageBroker.Presentation.Api/MessageBroker.Presentation.Api.csproj
    ```
 
 4. **Run all .NET examples:**
@@ -57,7 +65,20 @@ This project demonstrates RabbitMQ queue types and messaging patterns using C# (
    - `7` Simple Consumer (for testing)
    - `8` Poison Consumer (.NET)
 
-5. **Run Poison Consumer (Node.js):**
+5. **Run the .NET REST API:**
+
+    ```bash
+    cd src/NET/MessageBroker.Presentation.Api
+    dotnet run --project MessageBroker.Presentation.Api.csproj
+    ```
+
+    - Open [http://localhost:5042/](http://localhost:5042/) for Swagger UI and try the endpoints.
+    - Example endpoints:
+       - `GET /examples` — List all available examples
+       - `GET /steps` — List all available steps (from the ExampleStep enum)
+       - `POST /examples/execute-step` — Execute a step for a given example key
+
+6. **Run Poison Consumer (Node.js):**
 
    ```bash
    cd src/NodeJs
@@ -66,17 +87,21 @@ This project demonstrates RabbitMQ queue types and messaging patterns using C# (
 
 ## Secure RabbitMQ Password Usage
 
-For security, the RabbitMQ password is not stored in `appsettings.json` or any file committed to source control.
+For security, the RabbitMQ password is not stored in `appsettings.json` or any file committed to source control. Both the console and API projects use .NET user-secrets for local development:
 
-- Use .NET user-secrets for local development (see above)
-- For CI/CD or production, use environment variables or a secret store
+```powershell
+dotnet user-secrets set "MessageBroker:RabbitMQ:Password" "guest" --project src/NET/MessageBroker.Presentation.Console/MessageBroker.Presentation.Console.csproj
+dotnet user-secrets set "MessageBroker:RabbitMQ:Password" "guest" --project src/NET/MessageBroker.Presentation.Api/MessageBroker.Presentation.Api.csproj
+```
+
+For CI/CD or production, use environment variables or a secret store.
 
 ## Roadmap
 
 - [x] Unified .NET Console app for RabbitMQ examples
 - [x] Shared CrossCut library for example logic
 - [x] Node.js poison consumer for cross-platform demo
-- [ ] Blazor Server web UI for running examples (coming soon)
+- [ ] Web UI for running examples (coming soon)
 
 ## License
 
