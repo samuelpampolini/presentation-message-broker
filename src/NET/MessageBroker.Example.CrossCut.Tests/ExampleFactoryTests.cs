@@ -27,9 +27,7 @@ namespace MessageBroker.Example.CrossCut.Tests
         public static ExampleFactory CreateFactoryWithExamples()
         {
             var serviceProvider = new DummyServiceProvider();
-            var inputProvider = new DummyInputProvider();
-            var outputHandler = new DummyOutputHandler();
-            return new ExampleFactory(serviceProvider, inputProvider, outputHandler);
+            return new ExampleFactory(serviceProvider);
         }
     }
 
