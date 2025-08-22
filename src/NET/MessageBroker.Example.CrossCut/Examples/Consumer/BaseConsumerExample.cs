@@ -53,13 +53,36 @@ public abstract class BaseConsumerExample : IMessageExample
         _disposed = true;
     }
 
+
+    private bool _isComplete = false;
+
+    public bool IsComplete => _isComplete;
+
+    public async Task<string> ExecuteStepAsync(ExampleStep step, CancellationToken ct)
+    {
+        switch (step)
+        {
+            case ExampleStep.Setup:
+                await InitiateConnections(ct);
+                return "Connections initiated.";
+            case ExampleStep.SendMessages:
+                await SetupConsumingQueues(ct);
+                return "Consuming queues set up.";
+            case ExampleStep.CleanUp:
+                Dispose();
+                _isComplete = true;
+                return "Cleaned up and disposed.";
+            default:
+                return "Unknown step.";
+        }
+    }
+
+    [Obsolete("Use ExecuteStepAsync instead.")]
     public async Task RunExample(CancellationToken ct)
     {
         _logger.LogInformation("Starting the Example");
-
         await InitiateConnections(ct);
         await SetupConsumingQueues(ct);
-
         _logger.LogInformation("Press any key to stop this example:");
         if (_outputHandler != null)
             await _outputHandler.WriteOutputAsync("Press any key to stop this example:", ct);

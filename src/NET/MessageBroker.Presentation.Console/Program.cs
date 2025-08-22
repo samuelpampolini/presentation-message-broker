@@ -2,12 +2,11 @@
 using MessageBroker.Example.CrossCut.Factories;
 using MessageBroker.Example.CrossCut.Settings;
 using MessageBroker.Example.CrossCut.Extensions;
-using MessageBroker.Presentation.ConsoleIO;
+using MessageBroker.Presentation.Console;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
-using MessageBroker.Example.CrossCut.Attributes;
 
 // Build a config object, using env vars and JSON providers.
 IConfigurationRoot config = new ConfigurationBuilder()
@@ -21,6 +20,8 @@ services.Configure<IConfiguration>(config);
 services.AddMessageBrokerCrossCut();
 services.AddSingleton<IExampleInputProvider, ConsoleInputProvider>();
 services.AddSingleton<IExampleOutputHandler, ConsoleOutputHandler>();
+services.AddSingleton<ExampleFactory>();
+services.AddSingleton<ExampleTestRunner>();
 
 // Add Logs
 services.AddLogging(builder =>
@@ -52,8 +53,6 @@ services.AddSingleton<IConnectionFactory>(serviceProvider =>
 
 
 var serviceProvider = services.BuildServiceProvider();
-var exampleFactory = serviceProvider.GetRequiredService<ExampleFactory>();
 
-// Show menu table before running StartTests (redundant, but for demonstration)
-
-await exampleFactory.StartTests();
+var testRunner = serviceProvider.GetRequiredService<ExampleTestRunner>();
+await testRunner.RunAsync(CancellationToken.None);

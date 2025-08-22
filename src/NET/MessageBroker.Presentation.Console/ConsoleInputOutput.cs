@@ -1,16 +1,16 @@
 using MessageBroker.Example.CrossCut.Interfaces;
 
-namespace MessageBroker.Presentation.ConsoleIO;
+namespace MessageBroker.Presentation.Console;
 
 public class ConsoleInputProvider : IExampleInputProvider
 {
     public Task<string> GetInputAsync(string prompt, CancellationToken ct)
     {
-        Console.Write(prompt);
-        var keyInfo = Console.ReadKey(intercept: true);
+        System.Console.Write(prompt);
+        var keyInfo = System.Console.ReadKey(intercept: true);
         if (keyInfo.Key == ConsoleKey.Escape)
             return Task.FromResult(((char)27).ToString());
-        Console.WriteLine(keyInfo.KeyChar);
+        System.Console.WriteLine(keyInfo.KeyChar);
         return Task.FromResult(keyInfo.KeyChar.ToString());
     }
 }
@@ -19,27 +19,27 @@ public class ConsoleOutputHandler : IExampleOutputHandler
 {
     public Task ClearScreenAsync(CancellationToken ct)
     {
-        Console.Clear();
+        System.Console.Clear();
         return Task.CompletedTask;
     }
 
     public Task WriteOutputAsync(string message, CancellationToken ct)
     {
-        Console.WriteLine(message);
+        System.Console.WriteLine(message);
         return Task.CompletedTask;
     }
 
     public Task RenderMenuAsync(IReadOnlyDictionary<char, MessageBroker.Example.CrossCut.Factories.ExampleDetails> examples, CancellationToken ct)
     {
-        Console.WriteLine("\nAvailable Examples:");
-        Console.WriteLine("+-----+-------------------------------+");
-        Console.WriteLine("| Key | Example Name                  |");
-        Console.WriteLine("+-----+-------------------------------+");
+        System.Console.WriteLine("\nAvailable Examples:");
+        System.Console.WriteLine("+-----+-------------------------------+");
+        System.Console.WriteLine("| Key | Example Name                  |");
+        System.Console.WriteLine("+-----+-------------------------------+");
         foreach (var e in examples)
         {
-            Console.WriteLine($"|  {e.Key}  | {e.Value.title,-29} |");
+            System.Console.WriteLine($"|  {e.Key}  | {e.Value.title,-29} |");
         }
-        Console.WriteLine("+-----+-------------------------------+");
+        System.Console.WriteLine("+-----+-------------------------------+");
         return Task.CompletedTask;
     }
 }

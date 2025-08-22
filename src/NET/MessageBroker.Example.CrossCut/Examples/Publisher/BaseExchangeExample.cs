@@ -12,6 +12,7 @@ public abstract class BaseExchangeExample : IMessageExample
     protected IConnection? _connection;
     protected IChannel? _channel;
     private bool _disposed;
+    private bool _connected = false;
 
     protected abstract string ExchangeName { get; }
     protected abstract string TypeOfExchange { get; }
@@ -55,17 +56,27 @@ public abstract class BaseExchangeExample : IMessageExample
         _disposed = true;
     }
 
-    public async Task RunExample(CancellationToken ct)
+    public bool IsComplete => false;
+
+    public async Task<string> ExecuteStepAsync(ExampleStep step, CancellationToken ct)
     {
-        await InitiateConnections(ct);
-        await CreateTestEnvironment(ct);
+        if (!_connected)
+            await InitiateConnections(ct);
 
-        await _inputProvider.GetInputAsync("Environment is ready, press any Key to send the messages", ct);
-
-        await SendTestMessages(ct);
-        await CleanUpTestEnvironment(ct);
-
-        await _outputHandler.WriteOutputAsync("Example completed successfully", ct);
+        switch (step)
+        {
+            case ExampleStep.Setup:
+                await CreateTestEnvironment(ct);
+                return "Environment setup complete.";
+            case ExampleStep.SendMessages:
+                await SendTestMessages(ct);
+                return "Messages sent.";
+            case ExampleStep.CleanUp:
+                await CleanUpTestEnvironment(ct);
+                return "Clean up complete.";
+            default:
+                return "Unknown step.";
+        }
     }
 
     private async Task InitiateConnections(CancellationToken ct)
@@ -74,6 +85,8 @@ public abstract class BaseExchangeExample : IMessageExample
 
         _connection = await _connectionFactory.CreateConnectionAsync(ct);
         _channel = await _connection.CreateChannelAsync(cancellationToken: ct);
+
+        _connected = true;
     }
 
     protected virtual async Task CreateTestEnvironment(CancellationToken ct)
@@ -89,22 +102,15 @@ public abstract class BaseExchangeExample : IMessageExample
 
     protected virtual async Task<bool> CleanUpTestEnvironment(CancellationToken ct)
     {
-        // Leave the environment to check on RabbitMQ interface
-        string input = await _inputProvider.GetInputAsync("Do you want to clean up the test Environment? (Y/N)", ct);
-        bool cleanUpEnvironment = input.Equals("Y", StringComparison.OrdinalIgnoreCase);
-        // Clean up the environment
-        if (cleanUpEnvironment)
-        {
-            if (_channel is null)
-                throw new InvalidOperationException($"Channel not created, please execute {nameof(CleanUpTestEnvironment)}");
+        if (_channel is null)
+            throw new InvalidOperationException($"Channel not created, please execute {nameof(CleanUpTestEnvironment)}");
 
-            foreach (var queue in QueuesCreated)
-            {
-                await _channel.QueueDeleteAsync(queue, cancellationToken: ct);
-            }
-            await _channel.ExchangeDeleteAsync(ExchangeName, cancellationToken: ct);
+        foreach (var queue in QueuesCreated)
+        {
+            await _channel.QueueDeleteAsync(queue, cancellationToken: ct);
         }
-        return cleanUpEnvironment;
+        await _channel.ExchangeDeleteAsync(ExchangeName, cancellationToken: ct);
+        return true;
     }
 
     public abstract Task SendTestMessages(CancellationToken ct);
