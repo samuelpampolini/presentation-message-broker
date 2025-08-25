@@ -8,12 +8,16 @@ public class ExampleTestRunner
     private readonly ExampleFactory _exampleFactory;
     private readonly IExampleInputProvider _inputProvider;
     private readonly IExampleOutputHandler _outputHandler;
+    private readonly PublisherExampleRunner _publisherRunner;
+    private readonly ConsumerExampleRunner _consumerRunner;
 
     public ExampleTestRunner(ExampleFactory exampleFactory, IExampleInputProvider inputProvider, IExampleOutputHandler outputHandler)
     {
         _exampleFactory = exampleFactory;
         _inputProvider = inputProvider;
         _outputHandler = outputHandler;
+        _publisherRunner = new PublisherExampleRunner(inputProvider, outputHandler);
+        _consumerRunner = new ConsumerExampleRunner(inputProvider, outputHandler);
     }
 
     public async Task RunAsync(CancellationToken cancellationToken = default)
@@ -26,61 +30,40 @@ public class ExampleTestRunner
             if (input.Equals("Escape", StringComparison.OrdinalIgnoreCase) || (input.Length == 1 && input[0] == 27)) break;
 
             char keyChar = input[0];
-            var example = _exampleFactory.CreateExample(keyChar);
-            if (example is null)
+            var details = _exampleFactory.GetExamples().TryGetValue(keyChar, out var d) ? d : null;
+            if (details == null)
             {
                 await _outputHandler.WriteOutputAsync($"Example not found for key {keyChar}. Please try again.", cancellationToken);
                 continue;
             }
 
-            try
+            var typeOfExample = details.typeOfExample;
+            if (typeof(IMessageExample<ExampleStep>).IsAssignableFrom(typeOfExample))
             {
-                await RunExampleStepsAsync(example, cancellationToken);
+                var example = _exampleFactory.CreateExample<ExampleStep>(keyChar);
+                if (example is null)
+                {
+                    await _outputHandler.WriteOutputAsync($"Failed to create publisher example for key {keyChar}.", cancellationToken);
+                    continue;
+                }
+                try { await _publisherRunner.RunAsync(example, cancellationToken); }
+                finally { example.Dispose(); }
             }
-            finally
+            else if (typeof(IMessageExample<ConsumerExampleStep>).IsAssignableFrom(typeOfExample))
             {
-                if (example is IDisposable disposable)
-                    disposable.Dispose();
+                var example = _exampleFactory.CreateExample<ConsumerExampleStep>(keyChar);
+                if (example is null)
+                {
+                    await _outputHandler.WriteOutputAsync($"Failed to create consumer example for key {keyChar}.", cancellationToken);
+                    continue;
+                }
+                try { await _consumerRunner.RunAsync(example, cancellationToken); }
+                finally { example.Dispose(); }
             }
-
-        }
-    }
-
-    private async Task RunExampleStepsAsync(IMessageExample example, CancellationToken cancellationToken)
-    {
-        while (!example.IsComplete)
-        {
-            await ShowStepMenuAsync(cancellationToken);
-            var stepInput = await _inputProvider.GetInputAsync("Select step to execute (number or X): ", cancellationToken);
-            if (string.IsNullOrEmpty(stepInput)) continue;
-            if (stepInput.Equals("X", StringComparison.OrdinalIgnoreCase))
+            else
             {
-                await _outputHandler.WriteOutputAsync("Example terminated by user.", cancellationToken);
-                break;
+                await _outputHandler.WriteOutputAsync($"Unknown example type for key {keyChar}.", cancellationToken);
             }
-            if (!int.TryParse(stepInput, out int stepNum) || !Enum.IsDefined(typeof(ExampleStep), stepNum))
-            {
-                await _outputHandler.WriteOutputAsync("Invalid step selection. Please try again.", cancellationToken);
-                continue;
-            }
-            var step = (ExampleStep)stepNum;
-            string result = await example.ExecuteStepAsync(step, cancellationToken);
-            await _outputHandler.WriteOutputAsync($"Step result: {result}", cancellationToken);
-            if (step == ExampleStep.CleanUp) break;
         }
-        if (example.IsComplete)
-        {
-            await _outputHandler.WriteOutputAsync("Example completed all steps.", cancellationToken);
-        }
-    }
-
-    private async Task ShowStepMenuAsync(CancellationToken cancellationToken)
-    {
-        await _outputHandler.WriteOutputAsync("\nAvailable steps:", cancellationToken);
-        foreach (var step in Enum.GetValues(typeof(ExampleStep)))
-        {
-            await _outputHandler.WriteOutputAsync($"  {(int)step}: {step}", cancellationToken);
-        }
-        await _outputHandler.WriteOutputAsync("  X: Terminate example", cancellationToken);
     }
 }

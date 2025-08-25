@@ -1,4 +1,4 @@
-
+using Microsoft.AspNetCore.SignalR;
 using MessageBroker.Example.CrossCut.Interfaces;
 using MessageBroker.Presentation.Api.Support;
 using MessageBroker.Example.CrossCut.Settings;
@@ -6,10 +6,12 @@ using RabbitMQ.Client;
 using FastEndpoints;
 using MessageBroker.Example.CrossCut.Factories;
 using MessageBroker.Example.CrossCut.Extensions;
-
+using MessageBroker.Presentation.Api.Grpc;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
+
+builder.Services.AddGrpc();
 
 // Enable CORS for localhost (React dev server)
 builder.Services.AddCors(options =>
@@ -54,15 +56,15 @@ builder.Services.AddFastEndpoints();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
 var app = builder.Build();
 
 app.UseCors();
 app.UseFastEndpoints();
+app.MapGrpcService<ExamplesService>();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1");
 });
 
-app.Run();
+await app.RunAsync();

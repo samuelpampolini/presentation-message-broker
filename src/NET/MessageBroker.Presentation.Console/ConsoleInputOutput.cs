@@ -17,12 +17,6 @@ public class ConsoleInputProvider : IExampleInputProvider
 
 public class ConsoleOutputHandler : IExampleOutputHandler
 {
-    public Task ClearScreenAsync(CancellationToken ct)
-    {
-        System.Console.Clear();
-        return Task.CompletedTask;
-    }
-
     public Task WriteOutputAsync(string message, CancellationToken ct)
     {
         System.Console.WriteLine(message);

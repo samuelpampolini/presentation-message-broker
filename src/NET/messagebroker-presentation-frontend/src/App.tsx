@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import { fetchExamples, fetchSteps, executeStep } from './api';
+import { HubConnectionBuilder, HubConnection } from '@microsoft/signalr';
 
 interface ExampleInfo {
   key: string;
@@ -37,11 +38,29 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [consumerMessages, setConsumerMessages] = useState<string[]>([]);
+  const [connection, setConnection] = useState<HubConnection | null>(null);
 
   useEffect(() => {
     fetchExamples().then(setExamples).catch(e => setError(e.message));
     fetchSteps().then(setSteps).catch(e => setError(e.message));
+    // Connect to SignalR for Consumers only
+    const newConnection = new HubConnectionBuilder()
+      .withUrl('/messageHub')
+      .withAutomaticReconnect()
+      .build();
+    setConnection(newConnection);
   }, []);
+
+  useEffect(() => {
+    if (connection) {
+      connection.start().then(() => {
+        connection.on('ReceiveMessage', (consumerKey: string, message: string) => {
+          setConsumerMessages(prev => [`${consumerKey}: ${message}`, ...prev]);
+        });
+      });
+    }
+  }, [connection]);
 
 
   const handleExecute = async () => {
@@ -79,51 +98,103 @@ function App() {
   return (
     <div className="mbp-outer-center">
       <div className="mbp-root">
-        <div className="mbp-card">
-          <h1 className="mbp-title">MessageBroker API Demo</h1>
-          <p className="mbp-subtitle">Interact with backend examples step by step.</p>
-          {error && <div className="mbp-error">{error}</div>}
-          <div className="mbp-form-row">
-            <label className="mbp-label">Example:</label>
-            <select className="mbp-select" value={selectedExample} onChange={e => setSelectedExample(e.target.value)}>
-              <option value="">Select example</option>
-              {examples.map(ex => (
-                <option key={ex.key} value={ex.key}>{ex.title} ({ex.key})</option>
-              ))}
-            </select>
+        <div className="mbp-card-group">
+          <div className="mbp-card">
+            <h2>Publisher Examples</h2>
+            {/* Add publisher controls here */}
+            <div className="mbp-form-row">
+              <label className="mbp-label">Example:</label>
+              <select className="mbp-select" value={selectedExample} onChange={e => setSelectedExample(e.target.value)}>
+                <option value="">Select publisher example</option>
+                {examples.filter(ex => ex.key.startsWith('P')).map(ex => (
+                  <option key={ex.key} value={ex.key}>{ex.title} ({ex.key})</option>
+                ))}
+              </select>
+            </div>
+            <div className="mbp-form-row">
+              <label className="mbp-label">Step:</label>
+              <div className="mbp-stepper">
+                {steps.map(st => (
+                  <button
+                    key={st.value}
+                    className={`mbp-step-btn${selectedStep === st.value ? ' mbp-step-btn-active' : ''}`}
+                    onClick={() => setSelectedStep(st.value)}
+                    disabled={!selectedExample || loading}
+                  >
+                    {st.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button
+              className="mbp-execute-btn"
+              onClick={handleExecute}
+              disabled={loading || !selectedExample || selectedStep === undefined}
+            >
+              {loading ? <span className="mbp-spinner"></span> : 'Execute Step'}
+            </button>
+            {result && (
+              <div className="mbp-result">
+                <div><b>Result:</b> {result.result}</div>
+                <div><b>Is Complete:</b> {result.isComplete ? 'Yes' : 'No'}</div>
+              </div>
+            )}
           </div>
-          <div className="mbp-form-row">
-            <label className="mbp-label">Step:</label>
-            <div className="mbp-stepper">
-              {steps.map(st => (
-                <button
-                  key={st.value}
-                  className={`mbp-step-btn${selectedStep === st.value ? ' mbp-step-btn-active' : ''}`}
-                  onClick={() => setSelectedStep(st.value)}
-                  disabled={!selectedExample || loading}
-                >
-                  {st.name}
-                </button>
-              ))}
+          <div className="mbp-card">
+            <h2>Consumer Examples</h2>
+            {/* Add consumer controls here */}
+            <div className="mbp-form-row">
+              <label className="mbp-label">Example:</label>
+              <select className="mbp-select" value={selectedExample} onChange={e => setSelectedExample(e.target.value)}>
+                <option value="">Select consumer example</option>
+                {examples.filter(ex => ex.key.startsWith('C')).map(ex => (
+                  <option key={ex.key} value={ex.key}>{ex.title} ({ex.key})</option>
+                ))}
+              </select>
+            </div>
+            <div className="mbp-form-row">
+              <label className="mbp-label">Step:</label>
+              <div className="mbp-stepper">
+                {steps.map(st => (
+                  <button
+                    key={st.value}
+                    className={`mbp-step-btn${selectedStep === st.value ? ' mbp-step-btn-active' : ''}`}
+                    onClick={() => setSelectedStep(st.value)}
+                    disabled={!selectedExample || loading}
+                  >
+                    {st.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button
+              className="mbp-execute-btn"
+              onClick={handleExecute}
+              disabled={loading || !selectedExample || selectedStep === undefined}
+            >
+              {loading ? <span className="mbp-spinner"></span> : 'Execute Step'}
+            </button>
+            {result && (
+              <div className="mbp-result">
+                <div><b>Result:</b> {result.result}</div>
+                <div><b>Is Complete:</b> {result.isComplete ? 'Yes' : 'No'}</div>
+              </div>
+            )}
+            <div className="mbp-history-card">
+              <div className="mbp-history-header">
+                <h2 className="mbp-history-title">Live Consumer Messages</h2>
+              </div>
+              {consumerMessages.length === 0 ? (
+                <div className="mbp-history-empty">No consumer messages yet.</div>
+              ) : (
+                <ul className="mbp-history-list">
+                  {consumerMessages.map((msg, idx) => (
+                    <li key={idx} className="mbp-history-item">{msg}</li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
-          <div className="mbp-summary">
-            <div><b>Selected Example:</b> {selectedExample || <span style={{ color: '#888' }}>None</span>}</div>
-            <div><b>Selected Step:</b> {selectedStep !== undefined ? steps.find(s => s.value === selectedStep)?.name : <span style={{ color: '#888' }}>None</span>}</div>
-          </div>
-          <button
-            className="mbp-execute-btn"
-            onClick={handleExecute}
-            disabled={loading || !selectedExample || selectedStep === undefined}
-          >
-            {loading ? <span className="mbp-spinner"></span> : 'Execute Step'}
-          </button>
-          {result && (
-            <div className="mbp-result">
-              <div><b>Result:</b> {result.result}</div>
-              <div><b>Is Complete:</b> {result.isComplete ? 'Yes' : 'No'}</div>
-            </div>
-          )}
         </div>
         {/* History Section */}
         <div className="mbp-history-card">

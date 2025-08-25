@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option csharp_namespace = "MessageBroker.Presentation.Api.Grpc";
+
+package examples;
+
+service Examples {
+  rpc ExecuteStep (ExecuteStepRequest) returns (ExecuteStepResponse);
+}
+
+message ExecuteStepRequest {
+  string exampleKey = 1;
+  string step = 2;
+}
+
+message ExecuteStepResponse {
+  string result = 1;
+  bool isComplete = 2;
+}

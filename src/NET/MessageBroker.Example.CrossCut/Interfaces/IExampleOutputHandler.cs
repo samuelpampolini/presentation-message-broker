@@ -9,5 +9,4 @@ public interface IExampleOutputHandler
 {
     Task WriteOutputAsync(string message, CancellationToken ct);
     Task RenderMenuAsync(IReadOnlyDictionary<char, ExampleDetails> examples, CancellationToken ct);
-    Task ClearScreenAsync(CancellationToken ct);
 }

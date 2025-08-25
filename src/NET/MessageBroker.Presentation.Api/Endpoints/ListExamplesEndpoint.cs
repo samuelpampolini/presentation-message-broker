@@ -14,6 +14,7 @@ public class ListExamplesResponse
     {
         public char Key { get; set; }
         public string Title { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty; // "publisher" or "consumer"
     }
 }
 
@@ -35,13 +36,21 @@ public class ListExamplesEndpoint : EndpointWithoutRequest<ListExamplesResponse>
         };
         foreach (var kv in _factory.GetExamples())
         {
+            var typeOfExample = kv.Value.typeOfExample;
+            string typeDiscriminator;
+            if (typeof(IMessageExample<ExampleStep>).IsAssignableFrom(typeOfExample))
+                typeDiscriminator = "publisher";
+            else if (typeof(IMessageExample<ConsumerExampleStep>).IsAssignableFrom(typeOfExample))
+                typeDiscriminator = "consumer";
+            else
+                typeDiscriminator = "unknown";
             response.Examples.Add(new ListExamplesResponse.ExampleInfo
             {
                 Key = kv.Key,
-                Title = kv.Value.title
+                Title = kv.Value.title,
+                Type = typeDiscriminator
             });
         }
         await HttpContext.Response.SendAsync(response, cancellation: ct);
-        return;
     }
 }

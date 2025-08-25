@@ -1,11 +1,14 @@
+using RabbitMQ.Client.Events;
 using MessageBroker.Example.CrossCut.Interfaces;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
 namespace MessageBroker.Example.CrossCut.Examples.Consumer;
 
-public abstract class BaseConsumerExample : IMessageExample
+public abstract class BaseConsumerExample : IMessageExample<ConsumerExampleStep>
 {
+    // Event for reporting messages to the API or UI layer
+    public event Action<string, string>? MessageReceived;
     protected readonly IConnectionFactory _connectionFactory;
     protected readonly ILogger _logger;
     protected readonly IExampleInputProvider _inputProvider;
@@ -58,37 +61,30 @@ public abstract class BaseConsumerExample : IMessageExample
 
     public bool IsComplete => _isComplete;
 
-    public async Task<string> ExecuteStepAsync(ExampleStep step, CancellationToken ct)
+
+    public async Task<string> ExecuteStepAsync(ConsumerExampleStep step, CancellationToken ct)
     {
+        await InitiateConnections(ct);
+
         switch (step)
         {
-            case ExampleStep.Setup:
-                await InitiateConnections(ct);
-                return "Connections initiated.";
-            case ExampleStep.SendMessages:
+            case ConsumerExampleStep.Setup:
                 await SetupConsumingQueues(ct);
-                return "Consuming queues set up.";
-            case ExampleStep.CleanUp:
-                Dispose();
-                _isComplete = true;
-                return "Cleaned up and disposed.";
+                return "Setup complete.";
+            case ConsumerExampleStep.SendMessages:
+                await SendMessageStep(ct);
+                return "Message sent.";
+            case ConsumerExampleStep.ConsumeMessages:
+                await ConsumeMessagesStep(ct);
+                return "Consuming messages.";
             default:
                 return "Unknown step.";
         }
     }
 
-    [Obsolete("Use ExecuteStepAsync instead.")]
-    public async Task RunExample(CancellationToken ct)
-    {
-        _logger.LogInformation("Starting the Example");
-        await InitiateConnections(ct);
-        await SetupConsumingQueues(ct);
-        _logger.LogInformation("Press any key to stop this example:");
-        if (_outputHandler != null)
-            await _outputHandler.WriteOutputAsync("Press any key to stop this example:", ct);
-        if (_inputProvider != null)
-            await _inputProvider.GetInputAsync("", ct);
-    }
+    public abstract Task SendMessageStep(CancellationToken ct);
+    public abstract Task ConsumeMessagesStep(CancellationToken ct);
+
 
     private async Task InitiateConnections(CancellationToken ct)
     {
@@ -96,5 +92,11 @@ public abstract class BaseConsumerExample : IMessageExample
         _channel = await _connection.CreateChannelAsync(cancellationToken: ct);
     }
 
-    public abstract Task SetupConsumingQueues(CancellationToken ct = default);
+    public abstract Task SetupConsumingQueues(CancellationToken ct);
+
+    // Helper for derived classes to raise the event
+    protected void OnMessageReceived(string consumerKey, string message)
+    {
+        MessageReceived?.Invoke(consumerKey, message);
+    }
 }

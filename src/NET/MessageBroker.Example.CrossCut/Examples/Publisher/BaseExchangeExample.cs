@@ -4,7 +4,7 @@ using System.Text;
 
 namespace MessageBroker.Example.CrossCut.Examples.Publisher;
 
-public abstract class BaseExchangeExample : IMessageExample
+public abstract class BaseExchangeExample : IMessageExample<ExampleStep>
 {
     protected readonly IConnectionFactory _connectionFactory;
     protected readonly IExampleInputProvider _inputProvider;

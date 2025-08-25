@@ -29,20 +29,20 @@ public class ExecuteStepEndpoint : Endpoint<ExecuteStepRequest, ExecuteStepRespo
     }
     public override async Task HandleAsync(ExecuteStepRequest req, CancellationToken ct)
     {
-        var example = _factory.CreateExample(req.ExampleKey);
+        using var example = _factory.CreateExample(req.ExampleKey);
         if (example is null)
         {
             await HttpContext.Response.SendNotFoundAsync(ct);
             return;
         }
+
         string result = await example.ExecuteStepAsync(req.Step, ct);
         var response = new ExecuteStepResponse
         {
             Result = result,
             IsComplete = example.IsComplete
         };
-        example.Dispose();
+
         await HttpContext.Response.SendAsync(response, cancellation: ct);
-        return;
     }
 }
