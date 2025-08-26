@@ -9,7 +9,7 @@ namespace MessageBroker.Presentation.Api.Endpoints;
 public class ExecuteStepRequest
 {
     public char ExampleKey { get; set; }
-    public ExampleStep Step { get; set; }
+    public int Step { get; set; } = 0;
 }
 public class ExecuteStepResponse
 {
@@ -20,7 +20,11 @@ public class ExecuteStepResponse
 public class ExecuteStepEndpoint : Endpoint<ExecuteStepRequest, ExecuteStepResponse>
 {
     private readonly ExampleFactory _factory;
-    public ExecuteStepEndpoint(ExampleFactory factory) => _factory = factory;
+    public ExecuteStepEndpoint(ExampleFactory factory)
+    {
+        _factory = factory;
+    }
+
     public override void Configure()
     {
         Post("/examples/execute-step");
@@ -33,20 +37,23 @@ public class ExecuteStepEndpoint : Endpoint<ExecuteStepRequest, ExecuteStepRespo
         var pubExample = _factory.CreateExample<ExampleStep>(req.ExampleKey);
         if (pubExample != null)
         {
-            string result = await pubExample.ExecuteStepAsync(req.Step, ct);
-            var response = new ExecuteStepResponse
+            ExampleStep pubStep;
+            if (Enum.TryParse(req.Step.ToString(), out pubStep))
             {
-                Result = result,
-                IsComplete = pubExample.IsComplete
-            };
-            await HttpContext.Response.SendAsync(response, cancellation: ct);
-            return;
+                string result = await pubExample.ExecuteStepAsync(pubStep, ct);
+                var response = new ExecuteStepResponse
+                {
+                    Result = result,
+                    IsComplete = pubExample.IsComplete
+                };
+                await HttpContext.Response.SendAsync(response, cancellation: ct);
+                return;
+            }
         }
         // Try consumer
         var consExample = _factory.CreateExample<ConsumerExampleStep>(req.ExampleKey);
         if (consExample != null)
         {
-            // Map ExampleStep to ConsumerExampleStep if possible
             ConsumerExampleStep consStep;
             if (Enum.TryParse(req.Step.ToString(), out consStep))
             {
@@ -60,6 +67,7 @@ public class ExecuteStepEndpoint : Endpoint<ExecuteStepRequest, ExecuteStepRespo
                 return;
             }
         }
+
         await HttpContext.Response.SendNotFoundAsync(ct);
     }
 }

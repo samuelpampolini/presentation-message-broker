@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import { fetchExamples, executeStep, startConsumer } from './api';
+import { fetchExamples, executeStep } from './api';
 import { HubConnection } from '@microsoft/signalr';
 import { createSignalRConnection } from './signalr';
 import { ExampleSelector } from './components/ExampleSelector';
@@ -85,18 +85,15 @@ const App: React.FC = () => {
     const stepObj = stepGroup?.steps.find(s => s.value === selectedStep);
     const stepName = stepObj?.name || selectedStep.toString();
 
-    // For consumer 'ConsumeMessages', start consumer in backend, then start SignalR
+    // For consumer 'ConsumeMessages', use executeStep to start consumer, then start SignalR
     if (isConsumer && stepName === 'ConsumeMessages') {
       setIsConsuming(true);
-
       try {
-        await startConsumer(selectedExample);
-      } catch (e) {
+        await executeStep(selectedExample, selectedStep);
+      } catch {
         setLoading(false);
         return;
       }
-
-
       setLoading(false);
       return;
     }

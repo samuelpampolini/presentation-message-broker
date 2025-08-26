@@ -1,13 +1,3 @@
-// Start consumer example (background consuming)
-export const startConsumer = async (exampleKey: string) => {
-    const res = await fetch(`${API_URL}/examples/start-consumer`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exampleKey })
-    });
-    if (!res.ok) throw new Error('Failed to start consumer');
-    return res;
-};
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5042';
 
 export const fetchExamples = async () => {
