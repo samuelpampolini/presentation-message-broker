@@ -1,4 +1,5 @@
 using MessageBroker.Example.CrossCut.Attributes;
+using MessageBroker.Example.CrossCut.Interfaces;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -16,7 +17,7 @@ namespace MessageBroker.Example.CrossCut.Examples.Consumer;
 /// </summary>
 public class SimpleConsumerExample : BaseConsumerExample
 {
-    public SimpleConsumerExample(IConnectionFactory connectionFactory, ILoggerFactory loggerFactory) : base(connectionFactory, loggerFactory) { }
+    public SimpleConsumerExample(IConnectionFactory connectionFactory, ILoggerFactory loggerFactory, IExampleInputProvider exampleInputProvider, IExampleOutputHandler exampleOutputHandler) : base(connectionFactory, loggerFactory, exampleInputProvider, exampleOutputHandler) { }
 
     /// <summary>
     /// Step 1: Setup the queue for consuming messages.
@@ -55,7 +56,7 @@ public class SimpleConsumerExample : BaseConsumerExample
             var body = eventArgs.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
             // Return or forward the message to the calling service (e.g., via callback/event/SignalR/gRPC stream)
-            OnMessageReceived("simple-consumer", message);
+            await OnMessageReceivedAsync("simple-consumer", message, ct);
             await Task.Delay(500);
             await _channel.BasicAckAsync(deliveryTag: eventArgs.DeliveryTag, multiple: false);
         };

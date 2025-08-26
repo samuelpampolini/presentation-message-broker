@@ -1,3 +1,13 @@
+// Start consumer example (background consuming)
+export const startConsumer = async (exampleKey: string) => {
+    const res = await fetch(`${API_URL}/examples/start-consumer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ exampleKey })
+    });
+    if (!res.ok) throw new Error('Failed to start consumer');
+    return res;
+};
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5042';
 
 export const fetchExamples = async () => {
@@ -11,10 +21,11 @@ export const fetchSteps = async () => {
     const res = await fetch(`${API_URL}/steps`);
     if (!res.ok) throw new Error('Failed to fetch steps');
     const data = await res.json();
-    return data.steps;
+    return data.stepGroups;
 };
 
-export const executeStep = async (exampleKey: string, step: number) => {
+// step can be number (publisher) or string (consumer)
+export const executeStep = async (exampleKey: string, step: number | string) => {
     const res = await fetch(`${API_URL}/examples/execute-step`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

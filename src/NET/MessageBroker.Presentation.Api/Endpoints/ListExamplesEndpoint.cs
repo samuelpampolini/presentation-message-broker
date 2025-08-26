@@ -1,12 +1,12 @@
 using FastEndpoints;
 using MessageBroker.Example.CrossCut.Factories;
+using MessageBroker.Example.CrossCut.Interfaces;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace MessageBroker.Presentation.Api.Endpoints;
 
-public class ListExamplesRequest { }
 public class ListExamplesResponse
 {
     public List<ExampleInfo> Examples { get; set; } = new();

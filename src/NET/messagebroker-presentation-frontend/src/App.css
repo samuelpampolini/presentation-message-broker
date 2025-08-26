@@ -185,6 +185,7 @@ body {
   gap: 0.5em;
   flex-wrap: wrap;
   margin-left: 0.5em;
+  margin-bottom: 0.5em;
 }
 .mbp-step-btn {
   background: #232526;

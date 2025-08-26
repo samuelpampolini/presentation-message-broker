@@ -29,20 +29,37 @@ public class ExecuteStepEndpoint : Endpoint<ExecuteStepRequest, ExecuteStepRespo
     }
     public override async Task HandleAsync(ExecuteStepRequest req, CancellationToken ct)
     {
-        using var example = _factory.CreateExample(req.ExampleKey);
-        if (example is null)
+        // Try publisher first
+        var pubExample = _factory.CreateExample<ExampleStep>(req.ExampleKey);
+        if (pubExample != null)
         {
-            await HttpContext.Response.SendNotFoundAsync(ct);
+            string result = await pubExample.ExecuteStepAsync(req.Step, ct);
+            var response = new ExecuteStepResponse
+            {
+                Result = result,
+                IsComplete = pubExample.IsComplete
+            };
+            await HttpContext.Response.SendAsync(response, cancellation: ct);
             return;
         }
-
-        string result = await example.ExecuteStepAsync(req.Step, ct);
-        var response = new ExecuteStepResponse
+        // Try consumer
+        var consExample = _factory.CreateExample<ConsumerExampleStep>(req.ExampleKey);
+        if (consExample != null)
         {
-            Result = result,
-            IsComplete = example.IsComplete
-        };
-
-        await HttpContext.Response.SendAsync(response, cancellation: ct);
+            // Map ExampleStep to ConsumerExampleStep if possible
+            ConsumerExampleStep consStep;
+            if (Enum.TryParse(req.Step.ToString(), out consStep))
+            {
+                string result = await consExample.ExecuteStepAsync(consStep, ct);
+                var response = new ExecuteStepResponse
+                {
+                    Result = result,
+                    IsComplete = consExample.IsComplete
+                };
+                await HttpContext.Response.SendAsync(response, cancellation: ct);
+                return;
+            }
+        }
+        await HttpContext.Response.SendNotFoundAsync(ct);
     }
 }

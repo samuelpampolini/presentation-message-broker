@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using MessageBroker.Example.CrossCut.Attributes;
+using MessageBroker.Example.CrossCut.Interfaces;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
@@ -8,10 +9,7 @@ namespace MessageBroker.Example.CrossCut.Examples.Consumer;
 [Example("Poison Message", key: ConsoleKey.D8)]
 public class PoisonMessageExample : BaseConsumerExample
 {
-    public PoisonMessageExample(IConnectionFactory connectionFactory, ILoggerFactory loggerFactory) : base(connectionFactory, loggerFactory)
-    {
-    }
-
+    public PoisonMessageExample(IConnectionFactory connectionFactory, ILoggerFactory loggerFactory, IExampleInputProvider exampleInputProvider, IExampleOutputHandler exampleOutputHandler) : base(connectionFactory, loggerFactory, exampleInputProvider, exampleOutputHandler) { }
 
     public override async Task SetupConsumingQueues(CancellationToken ct)
     {
@@ -76,7 +74,7 @@ public class PoisonMessageExample : BaseConsumerExample
         {
             var body = ea.Body.ToArray();
             var message = System.Text.Encoding.UTF8.GetString(body);
-            OnMessageReceived("poison-message-1", message);
+            await OnMessageReceivedAsync("poison-message-1", message, ct);
             await channel.BasicAckAsync(ea.DeliveryTag, false);
         };
         await channel.BasicConsumeAsync(queue: "presentation-poison-message-1", autoAck: false, consumer: consumer);

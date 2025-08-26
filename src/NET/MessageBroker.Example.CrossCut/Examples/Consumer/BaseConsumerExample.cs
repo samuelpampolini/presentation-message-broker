@@ -7,8 +7,6 @@ namespace MessageBroker.Example.CrossCut.Examples.Consumer;
 
 public abstract class BaseConsumerExample : IMessageExample<ConsumerExampleStep>
 {
-    // Event for reporting messages to the API or UI layer
-    public event Action<string, string>? MessageReceived;
     protected readonly IConnectionFactory _connectionFactory;
     protected readonly ILogger _logger;
     protected readonly IExampleInputProvider _inputProvider;
@@ -17,13 +15,12 @@ public abstract class BaseConsumerExample : IMessageExample<ConsumerExampleStep>
     protected IChannel? _channel;
     private bool _disposed;
 
-    protected BaseConsumerExample(IConnectionFactory connectionFactory, ILoggerFactory loggerFactory)
+    protected BaseConsumerExample(IConnectionFactory connectionFactory, ILoggerFactory loggerFactory, IExampleInputProvider exampleInputProvider, IExampleOutputHandler exampleOutputHandler)
     {
         _connectionFactory = connectionFactory;
         _logger = loggerFactory.CreateLogger(this.GetType().Name);
-        // These should be injected in derived classes
-        _inputProvider = null!;
-        _outputHandler = null!;
+        _inputProvider = exampleInputProvider;
+        _outputHandler = exampleOutputHandler;
     }
 
     public void Dispose()
@@ -95,8 +92,8 @@ public abstract class BaseConsumerExample : IMessageExample<ConsumerExampleStep>
     public abstract Task SetupConsumingQueues(CancellationToken ct);
 
     // Helper for derived classes to raise the event
-    protected void OnMessageReceived(string consumerKey, string message)
+    protected async Task OnMessageReceivedAsync(string consumerKey, string message, CancellationToken ct)
     {
-        MessageReceived?.Invoke(consumerKey, message);
+        await _outputHandler.WriteOutputAsync($"Message received by {consumerKey}: {message}", ct);
     }
 }
