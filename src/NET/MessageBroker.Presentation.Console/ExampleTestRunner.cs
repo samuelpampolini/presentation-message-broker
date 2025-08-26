@@ -8,16 +8,14 @@ public class ExampleTestRunner
     private readonly ExampleFactory _exampleFactory;
     private readonly IExampleInputProvider _inputProvider;
     private readonly IExampleOutputHandler _outputHandler;
-    private readonly PublisherExampleRunner _publisherRunner;
-    private readonly ConsumerExampleRunner _consumerRunner;
+    private readonly ExampleRunner _exampleRunner;
 
     public ExampleTestRunner(ExampleFactory exampleFactory, IExampleInputProvider inputProvider, IExampleOutputHandler outputHandler)
     {
         _exampleFactory = exampleFactory;
         _inputProvider = inputProvider;
         _outputHandler = outputHandler;
-        _publisherRunner = new PublisherExampleRunner(inputProvider, outputHandler);
-        _consumerRunner = new ConsumerExampleRunner(inputProvider, outputHandler);
+        _exampleRunner = new ExampleRunner(inputProvider, outputHandler);
     }
 
     public async Task RunAsync(CancellationToken cancellationToken = default)
@@ -46,7 +44,7 @@ public class ExampleTestRunner
                     await _outputHandler.WriteOutputAsync($"Failed to create publisher example for key {keyChar}.", cancellationToken);
                     continue;
                 }
-                try { await _publisherRunner.RunAsync(example, cancellationToken); }
+                try { await _exampleRunner.RunAsync(example, cancellationToken); }
                 finally { example.Dispose(); }
             }
             else if (typeof(IMessageExample<ConsumerExampleStep>).IsAssignableFrom(typeOfExample))
@@ -57,7 +55,7 @@ public class ExampleTestRunner
                     await _outputHandler.WriteOutputAsync($"Failed to create consumer example for key {keyChar}.", cancellationToken);
                     continue;
                 }
-                try { await _consumerRunner.RunAsync(example, cancellationToken); }
+                try { await _exampleRunner.RunAsync(example, cancellationToken); }
                 finally { example.Dispose(); }
             }
             else

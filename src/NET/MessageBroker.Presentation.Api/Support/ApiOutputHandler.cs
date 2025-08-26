@@ -26,10 +26,4 @@ public class ApiOutputHandler : IExampleOutputHandler
         // No-op for API context
         return Task.CompletedTask;
     }
-
-    public Task ClearScreenAsync(CancellationToken ct)
-    {
-        // No-op for API context
-        return Task.CompletedTask;
-    }
 }

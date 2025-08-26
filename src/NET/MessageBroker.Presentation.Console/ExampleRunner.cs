@@ -5,22 +5,22 @@ using MessageBroker.Example.CrossCut.Interfaces;
 
 namespace MessageBroker.Presentation.Console;
 
-public class PublisherExampleRunner
+public class ExampleRunner
 {
     private readonly IExampleInputProvider _inputProvider;
     private readonly IExampleOutputHandler _outputHandler;
 
-    public PublisherExampleRunner(IExampleInputProvider inputProvider, IExampleOutputHandler outputHandler)
+    public ExampleRunner(IExampleInputProvider inputProvider, IExampleOutputHandler outputHandler)
     {
         _inputProvider = inputProvider;
         _outputHandler = outputHandler;
     }
 
-    public async Task RunAsync(IMessageExample<ExampleStep> example, CancellationToken cancellationToken)
+    public async Task RunAsync<TStep>(IMessageExample<TStep> example, CancellationToken cancellationToken) where TStep : Enum
     {
         while (!example.IsComplete)
         {
-            await ShowStepMenuAsync(cancellationToken);
+            await ShowStepMenuAsync<TStep>(cancellationToken);
             var stepInput = await _inputProvider.GetInputAsync("Select step to execute (number or X): ", cancellationToken);
             if (string.IsNullOrEmpty(stepInput)) continue;
             if (stepInput.Equals("X", StringComparison.OrdinalIgnoreCase))
@@ -28,15 +28,16 @@ public class PublisherExampleRunner
                 await _outputHandler.WriteOutputAsync("Example terminated by user.", cancellationToken);
                 break;
             }
-            if (!int.TryParse(stepInput, out int stepNum) || !Enum.IsDefined(typeof(ExampleStep), stepNum))
+            if (!int.TryParse(stepInput, out int stepNum) || !Enum.IsDefined(typeof(TStep), stepNum))
             {
                 await _outputHandler.WriteOutputAsync("Invalid step selection. Please try again.", cancellationToken);
                 continue;
             }
-            var step = (ExampleStep)stepNum;
+            var step = (TStep)Enum.ToObject(typeof(TStep), stepNum);
             string result = await example.ExecuteStepAsync(step, cancellationToken);
             await _outputHandler.WriteOutputAsync($"Step result: {result}", cancellationToken);
-            if (step == ExampleStep.CleanUp) break;
+            // For publisher, break on CleanUp; for consumer, just loop until complete
+            if (typeof(TStep).Name == nameof(ExampleStep) && stepNum == (int)ExampleStep.CleanUp) break;
         }
         if (example.IsComplete)
         {
@@ -44,10 +45,10 @@ public class PublisherExampleRunner
         }
     }
 
-    private async Task ShowStepMenuAsync(CancellationToken cancellationToken)
+    private async Task ShowStepMenuAsync<TStep>(CancellationToken cancellationToken) where TStep : Enum
     {
         await _outputHandler.WriteOutputAsync("\nAvailable steps:", cancellationToken);
-        foreach (var step in Enum.GetValues(typeof(ExampleStep)))
+        foreach (var step in Enum.GetValues(typeof(TStep)))
         {
             await _outputHandler.WriteOutputAsync($"  {(int)step}: {step}", cancellationToken);
         }
